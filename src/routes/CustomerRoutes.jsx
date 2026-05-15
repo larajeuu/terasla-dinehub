@@ -1,0 +1,16 @@
+import { Routes, Route } from 'react-router-dom';
+import Home from '../customer/pages/Home';
+import Restaurant from '../customer/pages/Restaurant';
+import Cart from '../customer/pages/Cart';
+import Checkout from '../customer/pages/Checkout';
+
+const CustomerRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/restaurant/:id" element={<Restaurant />} />
+    <Route path="/cart" element={<Cart />} />
+    <Route path="/checkout" element={<Checkout />} />
+  </Routes>
+);
+
+export default CustomerRoutes;
