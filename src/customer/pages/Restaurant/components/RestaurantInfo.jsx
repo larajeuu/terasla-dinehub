@@ -1,43 +1,28 @@
-import { useNavigate } from 'react-router-dom';
-import TenantIllustration from './TenantIllustration';
+import TenantIllustration from '../../Home/components/TenantIllustration';
 import { StarIcon, ClockIcon } from '../../../../shared/components/icons';
 
-const TenantCard = ({ tenant }) => {
-  const navigate = useNavigate();
+const RestaurantInfo = ({ tenant }) => {
+  if (!tenant) return null;
   const accentColor = tenant.color || '#1D3A27';
 
   return (
-    <button
-      onClick={() => navigate(`/restaurant/${tenant.id}`)}
-      className="w-full bg-white rounded-2xl p-4 text-left transition-all active:scale-[0.98] hover:shadow-md"
-      style={{
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-        border: '1px solid #f3f4f6',
-      }}
-    >
-      {/* Top: Info + Illustration */}
+    <section className="mx-4 mt-4 bg-white rounded-2xl p-4" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6' }}>
       <div className="flex gap-3">
-        {/* Left: Info */}
         <div className="flex-1 min-w-0 flex flex-col">
-          {/* Name */}
-          <h3
-            className="text-base font-bold leading-tight mb-0.5 truncate"
+          <h2
+            className="text-lg font-bold leading-tight mb-0.5"
             style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
-            title={tenant.name}
           >
             {tenant.name}
-          </h3>
-
-          {/* Category */}
+          </h2>
           <p
-            className="text-xs text-gray-500 mb-2 truncate"
+            className="text-xs text-gray-500 mb-2"
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             {tenant.category}
           </p>
 
-          {/* Rating + Hours */}
-          <div className="flex items-center gap-3 mb-3 flex-wrap">
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
             <div className="flex items-center gap-1">
               <StarIcon size={14} />
               <span
@@ -57,39 +42,13 @@ const TenantCard = ({ tenant }) => {
               </span>
             </div>
           </div>
-
-          {/* Featured product */}
-          {tenant.featuredProduct && (
-            <div>
-              <p
-                className="text-[10px] font-semibold tracking-wider text-gray-400 mb-1"
-                style={{ fontFamily: "'Poppins', sans-serif" }}
-              >
-                PRODUK UNGGULAN
-              </p>
-              <span
-                className="inline-block max-w-full text-xs font-medium px-2.5 py-1 rounded-full truncate"
-                style={{
-                  background: '#F5EDD9',
-                  color: '#7c5a0f',
-                  fontFamily: "'Inter', sans-serif",
-                  maxWidth: '100%',
-                }}
-                title={tenant.featuredProduct}
-              >
-                {tenant.featuredProduct}
-              </span>
-            </div>
-          )}
         </div>
 
-        {/* Right: Illustration */}
         <div className="w-24 h-24 shrink-0">
           <TenantIllustration color={accentColor} />
         </div>
       </div>
 
-      {/* Bottom row — full width, always row (does NOT wrap to column) */}
       <div className="mt-3 pt-3 flex items-center gap-2 border-t border-gray-100">
         <span
           className="text-white text-xs font-bold px-2.5 py-1 rounded-md shrink-0 tracking-wide"
@@ -97,7 +56,6 @@ const TenantCard = ({ tenant }) => {
         >
           {tenant.blockCode || tenant.block}
         </span>
-
         {tenant.isOpen ? (
           <span
             className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full shrink-0"
@@ -126,15 +84,9 @@ const TenantCard = ({ tenant }) => {
             Tutup
           </span>
         )}
-
-        {/* Spacer + chevron, takes remaining space without breaking row */}
-        <span className="flex-1" />
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0">
-          <path d="M9 6l6 6-6 6" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
       </div>
-    </button>
+    </section>
   );
 };
 
-export default TenantCard;
+export default RestaurantInfo;

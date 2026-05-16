@@ -1,4 +1,4 @@
-import ProductCard from './ProductCard';
+import ProductCard from '../../../components/ProductCard';
 
 const CATEGORIES = ['Semua', 'Makanan', 'Minuman', 'Camilan'];
 
@@ -13,7 +13,7 @@ const ProductSection = ({ products, activeCategory, onCategoryChange, loading })
             <button
               key={cat}
               onClick={() => onCategoryChange(cat)}
-              className="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all"
+              className="shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all"
               style={{
                 fontFamily: "'Poppins', sans-serif",
                 background: isActive ? '#C8961A' : '#f3f4f6',

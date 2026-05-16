@@ -1,19 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import useCartStore from '../../../../store/cartStore';
-
-const CartIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <path
-      d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path d="M16 10a4 4 0 01-8 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+import { TableIcon } from '../../../../shared/components/icons';
 
 const HomeHeader = () => {
   const [searchParams] = useSearchParams();
@@ -22,14 +9,25 @@ const HomeHeader = () => {
 
   return (
     <header
-      className="flex items-center justify-between px-4 py-3 sticky top-0 z-40"
-      style={{ background: '#1D3A27' }}
+      className="flex items-center justify-between px-4 py-3 sticky top-0 z-40 overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #1D3A27 0%, #244830 50%, #1D3A27 100%)',
+      }}
     >
+      {/* Soft background accent */}
+      <div
+        className="absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-15 pointer-events-none"
+        style={{ background: '#C8961A', filter: 'blur(30px)' }}
+      />
+
       {/* Logo */}
-      <div className="flex items-center gap-2">
+      <div className="relative flex items-center gap-2 z-10">
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: '#C8961A' }}
+          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          style={{
+            background: 'linear-gradient(135deg, #d6a425 0%, #C8961A 100%)',
+            boxShadow: '0 2px 8px -1px rgba(200,150,26,0.5)',
+          }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M3 9.5L12 3L21 9.5V21H15V15H9V21H3V9.5Z" fill="white" />
@@ -42,22 +40,57 @@ const HomeHeader = () => {
           >
             Teras LA
           </div>
-          <div className="text-xs leading-none mt-0.5" style={{ color: '#C8961A', fontFamily: "'Poppins', sans-serif" }}>
+          <div
+            className="text-[10px] leading-none mt-0.5 tracking-widest"
+            style={{ color: '#C8961A', fontFamily: "'Poppins', sans-serif" }}
+          >
             LENTENG AGUNG
           </div>
         </div>
       </div>
 
-      {/* Table number */}
+      {/* No. Meja — white pill for high contrast on dark header */}
       <div
-        className="text-xs font-semibold px-3 py-1 rounded-full"
+        className="relative inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full z-10"
         style={{
-          background: 'rgba(255,255,255,0.12)',
-          color: 'rgba(255,255,255,0.85)',
-          fontFamily: "'Inter', sans-serif",
+          background: '#ffffff',
+          boxShadow: '0 4px 12px -2px rgba(0,0,0,0.25), 0 0 0 1px rgba(200,150,26,0.35)',
         }}
       >
-        No. Meja {tableNumber}
+        {/* Icon badge */}
+        <span
+          className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+          style={{
+            background: 'linear-gradient(135deg, #d6a425 0%, #C8961A 100%)',
+            boxShadow: '0 2px 6px rgba(200,150,26,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
+          }}
+        >
+          <TableIcon size={14} color="white" />
+        </span>
+        <div className="text-left leading-none">
+          <span
+            className="block text-[9px] font-semibold tracking-[0.15em] uppercase"
+            style={{ color: '#9ca3af', fontFamily: "'Poppins', sans-serif" }}
+          >
+            Meja
+          </span>
+          <span
+            className="block text-base font-extrabold mt-0.5 tabular-nums"
+            style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif", lineHeight: 1 }}
+          >
+            {tableNumber}
+          </span>
+        </div>
+      </div>
+
+      {/* Right: indicator dot (matches gold accent if cart has items) */}
+      <div className="relative z-10 w-8 flex justify-end">
+        {totalItems > 0 && (
+          <span
+            className="block w-2 h-2 rounded-full animate-pulse"
+            style={{ background: '#C8961A', boxShadow: '0 0 8px rgba(200,150,26,0.7)' }}
+          />
+        )}
       </div>
     </header>
   );

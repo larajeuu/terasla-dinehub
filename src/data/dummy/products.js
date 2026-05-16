@@ -6,8 +6,10 @@ export const dummyProducts = [
     image: 'https://placehold.co/400x300/f59e0b/ffffff?text=Thai+Tea+Original',
     category: 'Minuman',
     tenantId: 't2',
-    tenantName: 'Thai Tea Bossku',
+    tenantName: 'Thai Tea Marina',
     isPopular: true,
+    description:
+      'Thai tea klasik dengan susu segar dan teh tubruk pilihan. Disajikan dingin dengan es batu, manis pas, dan bikin nagih di setiap tegukan.',
   },
   {
     id: 'p2',
@@ -18,6 +20,8 @@ export const dummyProducts = [
     tenantId: 't1',
     tenantName: 'Seblak Teh Rina',
     isPopular: true,
+    description:
+      'Seblak gurih pedas dengan kerupuk, mie, telur, baso, dan sosis. Topping super lengkap dengan kuah bumbu khas yang nendang.',
   },
   {
     id: 'p3',
@@ -28,6 +32,8 @@ export const dummyProducts = [
     tenantId: 't4',
     tenantName: 'Kantin Ea Ea',
     isPopular: true,
+    description:
+      'Nasi goreng racikan bumbu spesial dengan ayam suwir, telur mata sapi, acar segar, dan kerupuk. Porsi mengenyangkan!',
   },
   {
     id: 'p4',
@@ -38,6 +44,8 @@ export const dummyProducts = [
     tenantId: 't3',
     tenantName: 'Siomay Asoy',
     isPopular: true,
+    description:
+      'Siomay khas Bandung dengan ikan tenggiri pilihan, kentang, tahu, kol, dan telur. Disiram bumbu kacang kental yang gurih manis.',
   },
   {
     id: 'p5',
@@ -48,6 +56,8 @@ export const dummyProducts = [
     tenantId: 't5',
     tenantName: 'Gorengan Bu Ami',
     isPopular: true,
+    description:
+      'Bakwan sayur renyah dengan wortel, kol, dan tauge. Digoreng segar setiap pagi, cocok dinikmati dengan saus sambal kacang.',
   },
   {
     id: 'p6',
@@ -58,6 +68,8 @@ export const dummyProducts = [
     tenantId: 't8',
     tenantName: 'Es Teh Jumbo',
     isPopular: true,
+    description:
+      'Perpaduan teh segar dengan perasan lemon asli. Asam segar dan manisnya pas, paling cocok diminum saat siang panas.',
   },
   {
     id: 'p7',
@@ -66,8 +78,10 @@ export const dummyProducts = [
     image: 'https://placehold.co/400x300/22c55e/ffffff?text=Thai+Green+Tea',
     category: 'Minuman',
     tenantId: 't2',
-    tenantName: 'Thai Tea Bossku',
+    tenantName: 'Thai Tea Marina',
     isPopular: false,
+    description:
+      'Green tea Thailand dengan aroma melati yang khas, dipadukan susu segar. Lebih ringan dari thai tea biasa.',
   },
   {
     id: 'p8',
@@ -76,8 +90,10 @@ export const dummyProducts = [
     image: 'https://placehold.co/400x300/f97316/ffffff?text=Thai+Tea+Jumbo',
     category: 'Minuman',
     tenantId: 't2',
-    tenantName: 'Thai Tea Bossku',
+    tenantName: 'Thai Tea Marina',
     isPopular: false,
+    description:
+      'Thai tea original dalam ukuran ekstra besar 700ml. Puas minumnya, hemat harganya!',
   },
   {
     id: 'p9',
@@ -86,8 +102,10 @@ export const dummyProducts = [
     image: 'https://placehold.co/400x300/6b7280/ffffff?text=Thai+Tea+Oreo',
     category: 'Minuman',
     tenantId: 't2',
-    tenantName: 'Thai Tea Bossku',
+    tenantName: 'Thai Tea Marina',
     isPopular: false,
+    description:
+      'Thai tea creamy dengan topping crumble Oreo dan whipped cream. Manis, lembut, dan instagrammable.',
   },
   {
     id: 'p10',
@@ -96,8 +114,10 @@ export const dummyProducts = [
     image: 'https://placehold.co/400x300/92400e/ffffff?text=Thai+Tea+Coklat',
     category: 'Minuman',
     tenantId: 't2',
-    tenantName: 'Thai Tea Bossku',
+    tenantName: 'Thai Tea Marina',
     isPopular: false,
+    description:
+      'Thai tea dengan campuran coklat premium. Cocok buat pecinta rasa manis-coklat yang creamy.',
   },
   {
     id: 'p11',
@@ -106,8 +126,10 @@ export const dummyProducts = [
     image: 'https://placehold.co/400x300/bef264/333333?text=Lemon+Tea',
     category: 'Minuman',
     tenantId: 't2',
-    tenantName: 'Thai Tea Bossku',
+    tenantName: 'Thai Tea Marina',
     isPopular: false,
+    description:
+      'Teh segar dengan perasan lemon dan sedikit madu. Pas untuk pelepas dahaga di siang hari.',
   },
   {
     id: 'p12',
@@ -118,6 +140,8 @@ export const dummyProducts = [
     tenantId: 't4',
     tenantName: 'Kantin Ea Ea',
     isPopular: false,
+    description:
+      'Nasi goreng dengan potongan ayam goreng, telur, dan acar. Disajikan dengan kerupuk dan sambal.',
   },
   {
     id: 'p13',
@@ -128,6 +152,8 @@ export const dummyProducts = [
     tenantId: 't4',
     tenantName: 'Kantin Ea Ea',
     isPopular: false,
+    description:
+      'Nasi goreng premium dengan suwiran daging sapi gurih, telur, dan bumbu khas. Porsi besar bikin kenyang.',
   },
   {
     id: 'p14',
@@ -138,6 +164,8 @@ export const dummyProducts = [
     tenantId: 't4',
     tenantName: 'Kantin Ea Ea',
     isPopular: false,
+    description:
+      'Nasi goreng dengan cumi segar dan bumbu hitam khas. Aroma laut yang menggugah selera.',
   },
   {
     id: 'p15',
@@ -148,6 +176,8 @@ export const dummyProducts = [
     tenantId: 't4',
     tenantName: 'Kantin Ea Ea',
     isPopular: false,
+    description:
+      'Nasi goreng dengan teri medan asin renyah, telur, dan kacang. Cita rasa tradisional yang otentik.',
   },
   {
     id: 'p16',
@@ -158,6 +188,8 @@ export const dummyProducts = [
     tenantId: 't4',
     tenantName: 'Kantin Ea Ea',
     isPopular: false,
+    description:
+      'Nasi goreng spesial dengan udang segar berukuran besar. Manis, gurih, dan bikin nagih.',
   },
   {
     id: 'p17',
@@ -168,6 +200,8 @@ export const dummyProducts = [
     tenantId: 't8',
     tenantName: 'Es Teh Jumbo',
     isPopular: false,
+    description:
+      'Es teh manis segar dengan rasa pas dan menyegarkan. Pendamping setia makan siangmu.',
   },
   {
     id: 'p18',
@@ -178,6 +212,8 @@ export const dummyProducts = [
     tenantId: 't7',
     tenantName: 'Mie Ayam Mantap',
     isPopular: false,
+    description:
+      'Mie ayam dengan kuah kaldu gurih, topping ayam manis, pangsit goreng, dan baso. Lengkap sudah!',
   },
   {
     id: 'p19',
@@ -188,6 +224,8 @@ export const dummyProducts = [
     tenantId: 't6',
     tenantName: 'Warung Pak Udin',
     isPopular: false,
+    description:
+      'Nasi goreng rumahan ala Pak Udin dengan bumbu rahasia turun-temurun. Sederhana tapi bikin kangen.',
   },
   {
     id: 'p20',
@@ -198,5 +236,7 @@ export const dummyProducts = [
     tenantId: 't5',
     tenantName: 'Gorengan Bu Ami',
     isPopular: false,
+    description:
+      'Tahu putih digoreng krispi di luar, lembut di dalam. Cocok dimakan hangat dengan cabe rawit.',
   },
 ];

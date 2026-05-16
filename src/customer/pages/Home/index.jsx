@@ -1,11 +1,11 @@
 import useHomeData from './hooks/useHomeData';
 import HomeHeader from './components/HomeHeader';
 import HomeBanner from './components/HomeBanner';
-import HomeSearch from './components/HomeSearch';
 import HomeTabNav from './components/HomeTabNav';
 import ProductSection from './components/ProductSection';
 import TenantSection from './components/TenantSection';
-import CartBar from './components/CartBar';
+import SearchBar from '../../components/SearchBar';
+import CartBar from '../../components/CartBar';
 
 const Home = () => {
   const {
@@ -31,7 +31,7 @@ const Home = () => {
 
       <HomeBanner banners={banners} />
 
-      <HomeSearch value={searchQuery} onChange={setSearchQuery} />
+      <SearchBar value={searchQuery} onChange={setSearchQuery} />
 
       <HomeTabNav activeTab={activeTab} onTabChange={setActiveTab} />
 

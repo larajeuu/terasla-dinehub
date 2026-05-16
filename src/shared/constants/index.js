@@ -5,6 +5,7 @@ export const ROUTES = {
     home: '/',
     restaurant: (id) => `/restaurant/${id}`,
     cart: '/cart',
+    payment: '/payment',
     checkout: '/checkout',
   },
   merchant: {
