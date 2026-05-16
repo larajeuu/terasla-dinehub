@@ -1,0 +1,32 @@
+export const dummyBanners = [
+  {
+    id: 'b1',
+    badge: 'Minuman Baru!',
+    title: 'ES MANGGA\nSAGO',
+    subtitle: 'Segar, manis, dan menyegarkan. Tersedia di Teras LA!',
+    bg: 'linear-gradient(135deg, #1a3325 0%, #2d5a3d 50%, #1a3325 100%)',
+    accentColor: '#C8961A',
+    tenantId: 't2',
+    tenantName: 'Thai Tea Bossku',
+  },
+  {
+    id: 'b2',
+    badge: 'Promo Spesial!',
+    title: 'SEBLAK\nKOMPLIT',
+    subtitle: 'Pedas, gurih, bikin nagih. Diskon 15% hari ini!',
+    bg: 'linear-gradient(135deg, #3b1a1a 0%, #7f1d1d 50%, #3b1a1a 100%)',
+    accentColor: '#f59e0b',
+    tenantId: 't1',
+    tenantName: 'Seblak Teh Rina',
+  },
+  {
+    id: 'b3',
+    badge: 'Favorit Pelanggan!',
+    title: 'NASI GORENG\nSPESIAL',
+    subtitle: 'Menu andalan Kantin Ea Ea yang selalu habis!',
+    bg: 'linear-gradient(135deg, #1a2a1a 0%, #2d4a2d 50%, #1a2a1a 100%)',
+    accentColor: '#eab308',
+    tenantId: 't4',
+    tenantName: 'Kantin Ea Ea',
+  },
+];
