@@ -4,6 +4,7 @@ import Dashboard from '../merchant/pages/Dashboard';
 import Menu from '../merchant/pages/Menu';
 import Orders from '../merchant/pages/Orders';
 import Profile from '../merchant/pages/Profile';
+import Register from '../merchant/pages/Register';
 
 const MerchantRoutes = () => (
   <Routes>
@@ -13,6 +14,7 @@ const MerchantRoutes = () => (
     <Route path="/menu" element={<Menu />} />
     <Route path="/orders" element={<Orders />} />
     <Route path="/profile" element={<Profile />} />
+    <Route path="/register" element={<Register />} />
   </Routes>
 );
 
