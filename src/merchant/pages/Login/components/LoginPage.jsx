@@ -70,7 +70,7 @@ const LoginPage = () => {
             boxShadow: '0 4px 16px rgba(200, 150, 26, 0.35)',
           }}
         >
-          Masuk ke Akun
+          Masuk
         </button>
 
         <button

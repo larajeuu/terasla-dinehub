@@ -12,7 +12,7 @@ const StepKonfirmasi = ({ dataAkun, dataToko }) => {
       return;
     }
     // nanti diganti dengan API call
-    navigate('/merchant/dashboard');
+    navigate('/merchant/Login');
   };
 
   return (
