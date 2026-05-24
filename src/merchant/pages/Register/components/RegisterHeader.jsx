@@ -43,11 +43,11 @@ const RegisterHeader = ({ currentStep, onBack }) => {
       </div>
 
       {/* Stepper */}
-      <div className="flex items-center justify-between px-2">
+      <div className="flex items-center justify-between">
         {steps.map((step, index) => (
-          <div key={step.number} className="flex items-center flex-1">
-            {/* Circle */}
-            <div className="flex flex-col items-center">
+          <>
+            {/* Circle + Label */}
+            <div key={step.number} className="flex flex-col items-center">
               <div
                 className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
                 style={{
@@ -82,15 +82,13 @@ const RegisterHeader = ({ currentStep, onBack }) => {
             {/* Garis connector */}
             {index < steps.length - 1 && (
               <div
-                className="flex-1 h-px mx-2 mb-4"
+                className="flex-1 h-px mx-3 mb-4"
                 style={{
-                  background: currentStep > step.number
-                    ? '#4A7C40'
-                    : 'rgba(255,255,255,0.2)',
+                  background: currentStep > step.number ? '#4A7C40' : 'rgba(255,255,255,0.2)',
                 }}
               />
             )}
-          </div>
+          </>
         ))}
       </div>
     </div>
