@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageContainer from '../../components/PageContainer';
 import StatCard from '../../components/StatCard';
 import DataTable from '../../components/DataTable';
@@ -9,11 +10,23 @@ import {
   EyeIcon,
   MerchantIcon,
 } from '../../components/icons';
-import { dummyAdminMerchants } from '../../../data/dummy/adminMerchants';
+import { getMerchants, updateMerchantStatus } from '../../../services/merchantService';
 import { formatCurrency, formatDateShort } from '../../utils/format';
 
 const Merchants = () => {
-  const [merchants, setMerchants] = useState(dummyAdminMerchants);
+  const navigate = useNavigate();
+  const [merchants, setMerchants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    getMerchants()
+      .then((data) => { if (active) setMerchants(data); })
+      .catch(() => { if (active) setError('Gagal memuat data merchant dari server.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const stats = useMemo(() => {
     const active = merchants.filter((m) => m.status === 'active').length;
@@ -22,8 +35,15 @@ const Merchants = () => {
     return { total: merchants.length, active, pending, suspended };
   }, [merchants]);
 
-  const updateStatus = (id, status) => {
-    setMerchants((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
+  const updateStatus = async (id, status) => {
+    const prev = merchants;
+    setMerchants((cur) => cur.map((m) => (m.id === id ? { ...m, status } : m)));
+    try {
+      await updateMerchantStatus(id, status);
+    } catch {
+      setMerchants(prev);
+      setError('Gagal memperbarui status merchant.');
+    }
   };
 
   const columns = [
@@ -113,7 +133,11 @@ const Merchants = () => {
               Aktifkan
             </button>
           )}
-          <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
+          <button
+            onClick={() => navigate(`/admin/merchants/${r.id}`)}
+            title="Lihat detail"
+            className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
+          >
             <EyeIcon size={14} />
           </button>
         </div>
@@ -147,6 +171,21 @@ const Merchants = () => {
       title="Manajemen Merchant"
       subtitle="Approval, suspend, dan pantauan merchant"
     >
+      {error && (
+        <div
+          className="mb-4 rounded-xl px-4 py-3 text-sm"
+          style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fecaca' }}
+        >
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="bg-white rounded-2xl border p-10 text-center text-gray-400 text-sm" style={{ borderColor: '#e5e7eb' }}>
+          Memuat data merchant...
+        </div>
+      ) : (
+      <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total Merchant" value={stats.total} icon={MerchantIcon} iconBg="#1D3A27" />
         <StatCard label="Aktif" value={stats.active} icon={MerchantIcon} iconBg="#16a34a" />
@@ -161,6 +200,8 @@ const Merchants = () => {
         filters={filters}
         pageSize={10}
       />
+      </>
+      )}
     </PageContainer>
   );
 };

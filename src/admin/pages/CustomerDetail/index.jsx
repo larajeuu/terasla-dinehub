@@ -37,11 +37,11 @@ const CustomerDetail = () => {
   const orderStats = useMemo(() => {
     const total = orders.length;
     const totalSpent = orders.reduce((s, o) => s + o.totalAmount, 0);
-    const completed = orders.filter((o) => o.status === 'completed').length;
-    const failed = orders.filter((o) => o.status === 'failed' || o.status === 'disputed').length;
+    const done = orders.filter((o) => o.status === 'done').length;
+    const cancelled = orders.filter((o) => o.status === 'cancelled').length;
     const tenantSet = new Set();
     orders.forEach((o) => o.items.forEach((i) => tenantSet.add(i.tenantId)));
-    return { total, totalSpent, completed, failed, tenantCount: tenantSet.size };
+    return { total, totalSpent, done, cancelled, tenantCount: tenantSet.size };
   }, [orders]);
 
   if (!customer) {

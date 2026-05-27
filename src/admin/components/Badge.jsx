@@ -1,10 +1,14 @@
 const STATUS_STYLES = {
-  // Transaction
-  completed: { bg: '#dcfce7', color: '#15803d', label: 'Completed' },
-  processing: { bg: '#fef3c7', color: '#a16207', label: 'Processing' },
-  failed: { bg: '#fee2e2', color: '#b91c1c', label: 'Failed' },
-  refunded: { bg: '#e0e7ff', color: '#4338ca', label: 'Refunded' },
-  disputed: { bg: '#fed7aa', color: '#9a3412', label: 'Disputed' },
+  // Customer order lifecycle (VERIFYING → OPEN → PROCESS → WAITING CONFIRMATION → DONE)
+  verifying: { bg: '#fef9c3', color: '#a16207', label: 'Verifying' },
+  open: { bg: '#dbeafe', color: '#1e40af', label: 'Open' },
+  process: { bg: '#fef3c7', color: '#a16207', label: 'Process' },
+  waiting_confirmation: { bg: '#e0e7ff', color: '#4338ca', label: 'Waiting Confirm' },
+  done: { bg: '#dcfce7', color: '#15803d', label: 'Done' },
+  cancelled: { bg: '#fee2e2', color: '#b91c1c', label: 'Cancelled' },
+  // Tenant order lifecycle (BARU → TERBUKA → DIPROSES → SELESAI / DIBATALKAN)
+  new: { bg: '#f1f5f9', color: '#475569', label: 'Baru' },
+  refunded: { bg: '#ede9fe', color: '#6d28d9', label: 'Refunded' },
   // Merchant
   active: { bg: '#dcfce7', color: '#15803d', label: 'Active' },
   pending: { bg: '#fef3c7', color: '#a16207', label: 'Pending' },

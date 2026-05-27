@@ -30,7 +30,7 @@ const OrderTable = ({ orders, pageSize = 10 }) => {
   const currentPage = Math.min(page, totalPages);
   const paged = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  const goDetail = (orderId) => navigate(`/admin/transactions/${orderId}`);
+  const goDetail = (id) => navigate(`/admin/transactions/${id}`);
 
   return (
     <div
@@ -55,11 +55,12 @@ const OrderTable = ({ orders, pageSize = 10 }) => {
           style={{ borderColor: '#e5e7eb' }}
         >
           <option value="all">Status (semua)</option>
-          <option value="completed">Completed</option>
-          <option value="processing">Processing</option>
-          <option value="failed">Failed</option>
-          <option value="refunded">Refunded</option>
-          <option value="disputed">Disputed</option>
+          <option value="verifying">Verifying</option>
+          <option value="open">Open</option>
+          <option value="process">Process</option>
+          <option value="waiting_confirmation">Waiting Confirm</option>
+          <option value="done">Done</option>
+          <option value="cancelled">Cancelled</option>
         </select>
         <select
           value={methodFilter}
@@ -103,8 +104,8 @@ const OrderTable = ({ orders, pageSize = 10 }) => {
                 const isMulti = o.tenantCount > 1;
                 return (
                   <tr
-                    key={o.orderId}
-                    onClick={() => goDetail(o.orderId)}
+                    key={o.id ?? o.orderId}
+                    onClick={() => goDetail(o.id ?? o.orderId)}
                     className="border-t hover:bg-gray-50/60 transition-colors cursor-pointer"
                     style={{ borderColor: '#f1f5f9' }}
                   >
@@ -148,7 +149,7 @@ const OrderTable = ({ orders, pageSize = 10 }) => {
                     </td>
                     <td className="px-4 py-3 align-middle">
                       <button
-                        onClick={(e) => { e.stopPropagation(); goDetail(o.orderId); }}
+                        onClick={(e) => { e.stopPropagation(); goDetail(o.id ?? o.orderId); }}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white"
                         style={{ background: '#1D3A27' }}
                       >

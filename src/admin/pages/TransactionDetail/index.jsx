@@ -1,33 +1,48 @@
-import { useMemo } from 'react';
-import { useParams, useNavigate, Link, NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import PageContainer from '../../components/PageContainer';
 import Badge from '../../components/Badge';
 import { BackIcon, ReceiptIcon, MerchantIcon } from '../../components/icons';
-import { dummyAdminOrders, getOrderSummary } from '../../../data/dummy/adminOrders';
-import { dummyAdminCustomers } from '../../../data/dummy/adminCustomers';
-import { dummyAdminMerchants } from '../../../data/dummy/adminMerchants';
+import { getCustomerOrderById, isItemRefunded } from '../../../services/customerOrderService';
 import { formatCurrency, formatDate } from '../../utils/format';
 
 const TransactionDetail = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
 
-  const order = useMemo(() => {
-    const found = dummyAdminOrders.find((o) => o.orderId === orderId);
-    return found ? getOrderSummary(found) : null;
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    getCustomerOrderById(orderId)
+      .then((data) => { if (active) { setOrder(data); setError(null); } })
+      .catch((err) => {
+        if (active) setError(err?.response?.status === 404 ? 'notfound' : 'load');
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [orderId]);
 
-  const customer = useMemo(
-    () => dummyAdminCustomers.find((c) => c.id === order?.customerId),
-    [order]
-  );
-
-  if (!order) {
+  if (loading) {
     return (
-      <PageContainer title="Order Tidak Ditemukan" subtitle={`Order ID: ${orderId}`}>
+      <PageContainer title="Detail Order" subtitle={`Order #${orderId}`}>
+        <div className="bg-white rounded-2xl border p-10 text-center text-gray-400 text-sm" style={{ borderColor: '#e5e7eb' }}>
+          Memuat detail order...
+        </div>
+      </PageContainer>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <PageContainer title="Order Tidak Ditemukan" subtitle={`Order #${orderId}`}>
         <div className="bg-white rounded-2xl border p-10 text-center" style={{ borderColor: '#e5e7eb', fontFamily: "'Inter', sans-serif" }}>
           <div className="text-gray-500 mb-4">
-            Order dengan ID <span className="font-mono">{orderId}</span> tidak ada di sistem.
+            {error === 'notfound'
+              ? <>Order <span className="font-mono">#{orderId}</span> tidak ada di server.</>
+              : 'Gagal memuat detail order dari server.'}
           </div>
           <Link
             to="/admin/transactions"
@@ -78,31 +93,35 @@ const TransactionDetail = () => {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Grand Total</div>
+            <div className="text-[11px] text-gray-500 uppercase font-bold tracking-wider">
+              {order.hasRefund ? 'Total Setelah Refund' : 'Grand Total'}
+            </div>
             <div
               className="text-3xl font-bold"
               style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
             >
               {formatCurrency(order.totalAmount)}
             </div>
+            {order.hasRefund && (
+              <div className="text-[11px] text-gray-500 mt-1">
+                <span className="line-through">{formatCurrency(order.grossTotal)}</span>
+                <span className="ml-2" style={{ color: '#b91c1c' }}>
+                  −{formatCurrency(order.refundedTotal)} dibatalkan
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-5 border-t" style={{ borderColor: '#f1f5f9' }}>
           <div>
             <div className="text-[10px] uppercase font-bold tracking-wider text-gray-500 mb-1">Customer</div>
-            <NavLink
-              to={`/admin/customers/${order.customerId}`}
-              className="font-mono text-sm font-bold inline-block"
-              style={{ color: '#1D3A27' }}
-            >
-              {order.customerId} →
-            </NavLink>
-            {customer?.email && (
-              <div className="text-[11px] text-gray-500 truncate">{customer.email}</div>
+            <div className="text-sm font-semibold text-gray-800 truncate">{order.customer?.name || '-'}</div>
+            {order.customer?.email && (
+              <div className="text-[11px] text-gray-500 truncate">{order.customer.email}</div>
             )}
           </div>
-          <Info label="Meja" value={order.tableCode} sub={customer?.phone} />
+          <Info label="Meja" value={order.tableCode} sub={order.customer?.phone} />
           <Info label="Waktu Order" value={formatDate(order.date)} />
           <Info
             label="Pembayaran"
@@ -170,40 +189,72 @@ const TransactionDetail = () => {
               </div>
 
               <div className="py-3 flex flex-col gap-4">
-                {order.items.map((item, i) => (
-                  <div key={i}>
-                    <div className="text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: '#C8961A' }}>
-                      {item.tenant}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      {item.products.map((p, j) => (
-                        <div key={j} className="flex justify-between items-baseline text-sm">
-                          <div className="flex-1 min-w-0">
-                            <span className="text-gray-800">{p.name}</span>
-                            {p.qty > 1 && (
-                              <span className="text-gray-400 ml-2 text-xs">×{p.qty}</span>
-                            )}
-                          </div>
-                          <span className="text-gray-700 font-semibold whitespace-nowrap">
-                            {formatCurrency(p.price * p.qty)}
+                {order.items.map((item, i) => {
+                  const refunded = isItemRefunded(item);
+                  return (
+                    <div key={i} style={refunded ? { opacity: 0.6 } : undefined}>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#C8961A' }}>
+                          {item.tenant}
+                        </span>
+                        {refunded && (
+                          <span
+                            className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                            style={{ background: '#fee2e2', color: '#b91c1c' }}
+                          >
+                            Dibatalkan
                           </span>
-                        </div>
-                      ))}
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        {item.products.map((p, j) => (
+                          <div key={j} className="flex justify-between items-baseline text-sm">
+                            <div className="flex-1 min-w-0">
+                              <span className={refunded ? 'text-gray-500 line-through' : 'text-gray-800'}>{p.name}</span>
+                              {p.qty > 1 && (
+                                <span className="text-gray-400 ml-2 text-xs">×{p.qty}</span>
+                              )}
+                            </div>
+                            <span className={`font-semibold whitespace-nowrap ${refunded ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                              {formatCurrency(p.price * p.qty)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-between text-xs pt-1.5 mt-1.5 border-t border-dashed" style={{ borderColor: '#d1d5db' }}>
+                        <span className="text-gray-500">Subtotal {item.tenant}</span>
+                        {refunded ? (
+                          <span className="font-bold" style={{ color: '#b91c1c' }}>
+                            <span className="line-through text-gray-400 mr-1.5">{formatCurrency(item.amount)}</span>
+                            Rp0
+                          </span>
+                        ) : (
+                          <span className="font-bold" style={{ color: '#1D3A27' }}>
+                            {formatCurrency(item.amount)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs pt-1.5 mt-1.5 border-t border-dashed" style={{ borderColor: '#d1d5db' }}>
-                      <span className="text-gray-500">Subtotal {item.tenant}</span>
-                      <span className="font-bold" style={{ color: '#1D3A27' }}>
-                        {formatCurrency(item.amount)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div
                 className="border-t border-dashed pt-3 mt-1 flex flex-col gap-1"
                 style={{ borderColor: '#d1d5db' }}
               >
+                {order.hasRefund && (
+                  <>
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(order.grossTotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs" style={{ color: '#b91c1c' }}>
+                      <span>Item dibatalkan</span>
+                      <span>−{formatCurrency(order.refundedTotal)}</span>
+                    </div>
+                  </>
+                )}
                 <div
                   className="flex justify-between text-base font-bold pt-2"
                   style={{ color: '#1D3A27' }}
@@ -212,8 +263,7 @@ const TransactionDetail = () => {
                   <span>{formatCurrency(order.totalAmount)}</span>
                 </div>
                 <div className="mt-2 text-center text-[11px] text-gray-500">
-                  Dibayar via <strong>{order.paymentMethod}</strong> ·{' '}
-                  <span className="capitalize">{order.status}</span>
+                  Dibayar via <strong>{order.paymentMethod}</strong> · <Badge status={order.status} />
                 </div>
               </div>
             </div>
@@ -254,64 +304,61 @@ const TransactionDetail = () => {
           </div>
 
           <div className="p-6 flex flex-col gap-4">
-            {order.items.map((item, i) => {
-              const tenantInfo = dummyAdminMerchants.find((m) => m.id === item.tenantId);
-              return (
+            {order.items.map((item, i) => (
+              <div
+                key={i}
+                className="rounded-xl border overflow-hidden"
+                style={{ borderColor: '#e5e7eb' }}
+              >
                 <div
-                  key={i}
-                  className="rounded-xl border overflow-hidden"
-                  style={{ borderColor: '#e5e7eb' }}
+                  className="px-4 py-3 flex items-center justify-between gap-3"
+                  style={{ background: '#fafafa' }}
                 >
-                  <div
-                    className="px-4 py-3 flex items-center justify-between gap-3"
-                    style={{ background: '#fafafa' }}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
-                        style={{ background: '#1D3A27' }}
-                      >
-                        {item.tenant.charAt(0)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-bold text-gray-800 truncate">{item.tenant}</div>
-                        <div className="text-[11px] text-gray-500">
-                          {tenantInfo ? `${tenantInfo.block} · ${tenantInfo.category}` : item.tenantId}
-                        </div>
-                      </div>
-                    </div>
-                    <Badge status={item.status} />
-                  </div>
-
-                  <div className="p-4">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2">
-                      Produk Dipesan ({item.products.length})
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      {item.products.map((p, j) => (
-                        <div key={j} className="flex justify-between items-baseline">
-                          <div className="flex items-baseline gap-2 min-w-0 flex-1">
-                            <span className="text-sm text-gray-800 truncate">{p.name}</span>
-                            <span className="text-xs text-gray-400 shrink-0">×{p.qty}</span>
-                            <span className="text-[11px] text-gray-400 shrink-0">@ {formatCurrency(p.price)}</span>
-                          </div>
-                          <span className="text-sm font-semibold whitespace-nowrap text-gray-700">
-                            {formatCurrency(p.price * p.qty)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="flex items-center gap-3 min-w-0">
                     <div
-                      className="flex justify-between text-sm font-bold pt-3 mt-3 border-t"
-                      style={{ borderColor: '#f1f5f9' }}
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+                      style={{ background: '#1D3A27' }}
                     >
-                      <span className="text-gray-700">Total ke tenant</span>
-                      <span style={{ color: '#16a34a' }}>{formatCurrency(item.amount)}</span>
+                      {item.tenant?.charAt(0) || '?'}
                     </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-gray-800 truncate">{item.tenant}</div>
+                      <div className="text-[11px] text-gray-500">Tenant #{item.tenantId}</div>
+                    </div>
+                  </div>
+                  <Badge status={item.status} />
+                </div>
+
+                <div className="p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2">
+                    Produk Dipesan ({item.products.length})
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {item.products.map((p, j) => (
+                      <div key={j} className="flex justify-between items-baseline">
+                        <div className="flex items-baseline gap-2 min-w-0 flex-1">
+                          <span className="text-sm text-gray-800 truncate">{p.name}</span>
+                          <span className="text-xs text-gray-400 shrink-0">×{p.qty}</span>
+                          <span className="text-[11px] text-gray-400 shrink-0">@ {formatCurrency(p.price)}</span>
+                        </div>
+                        <span className="text-sm font-semibold whitespace-nowrap text-gray-700">
+                          {formatCurrency(p.price * p.qty)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div
+                    className="flex justify-between text-sm font-bold pt-3 mt-3 border-t"
+                    style={{ borderColor: '#f1f5f9' }}
+                  >
+                    <span className="text-gray-700">Total ke tenant</span>
+                    <span style={{ color: isItemRefunded(item) ? '#b91c1c' : '#16a34a' }}>
+                      {isItemRefunded(item) ? `−${formatCurrency(item.amount)}` : formatCurrency(item.amount)}
+                    </span>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
 
             {/* Summary footer */}
             <div
