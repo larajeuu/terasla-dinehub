@@ -1,10 +1,10 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { BackIcon, TableIcon } from '../../../../shared/components/icons';
+import useTableStore from '../../../../store/tableStore';
 
 const CartHeader = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const tableNumber = searchParams.get('meja') || '1';
+  const tableLabel = useTableStore((s) => s.label);
 
   return (
     <header
@@ -48,7 +48,7 @@ const CartHeader = () => {
           className="text-[11px] font-semibold text-white tabular-nums"
           style={{ fontFamily: "'Poppins', sans-serif" }}
         >
-          No. Meja {tableNumber}
+          {tableLabel ? `No. Meja ${tableLabel}` : 'Belum scan meja'}
         </span>
       </div>
     </header>

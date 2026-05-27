@@ -1,10 +1,9 @@
-import { useSearchParams } from 'react-router-dom';
 import useCartStore from '../../../../store/cartStore';
+import useTableStore from '../../../../store/tableStore';
 import { TableIcon } from '../../../../shared/components/icons';
 
 const HomeHeader = () => {
-  const [searchParams] = useSearchParams();
-  const tableNumber = searchParams.get('meja') || '1';
+  const tableLabel = useTableStore((s) => s.label);
   const totalItems = useCartStore((s) => s.getTotalItems());
 
   return (
@@ -78,7 +77,7 @@ const HomeHeader = () => {
             className="block text-base font-extrabold mt-0.5 tabular-nums"
             style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif", lineHeight: 1 }}
           >
-            {tableNumber}
+            {tableLabel || '—'}
           </span>
         </div>
       </div>

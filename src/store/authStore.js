@@ -5,6 +5,7 @@ const useAuthStore = create((set) => ({
   token: null,
   setUser: (user) => set({ user }),
   setToken: (token) => set({ token }),
+  setAuth: ({ user, token }) => set({ user, token }),
   logout: () => set({ user: null, token: null }),
 }));
 

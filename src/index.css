@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+/* Cursor pointer for all interactive elements (global) */
+button:not(:disabled),
+a,
+select,
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]),
+[role="button"],
+[data-clickable] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

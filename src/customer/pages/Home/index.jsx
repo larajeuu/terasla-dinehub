@@ -1,4 +1,5 @@
 import useHomeData from './hooks/useHomeData';
+import useQrLanding from './hooks/useQrLanding';
 import HomeHeader from './components/HomeHeader';
 import HomeBanner from './components/HomeBanner';
 import HomeTabNav from './components/HomeTabNav';
@@ -8,6 +9,7 @@ import SearchBar from '../../components/SearchBar';
 import CartBar from '../../components/CartBar';
 
 const Home = () => {
+  const { status: qrStatus } = useQrLanding();
   const {
     banners,
     products,
@@ -28,6 +30,24 @@ const Home = () => {
       style={{ background: '#f9fafb', fontFamily: "'Inter', sans-serif" }}
     >
       <HomeHeader />
+
+      {qrStatus !== 'ok' && qrStatus !== 'pending' && (
+        <div className="px-4 pt-3">
+          <div
+            className="rounded-lg px-3 py-2.5 text-[12px] leading-snug"
+            style={{
+              background: qrStatus === 'invalid' ? '#fef2f2' : '#fff7ed',
+              color: qrStatus === 'invalid' ? '#b91c1c' : '#9a3412',
+              border: `1px solid ${qrStatus === 'invalid' ? '#fecaca' : '#fed7aa'}`,
+              fontFamily: "'Inter', sans-serif",
+            }}
+          >
+            {qrStatus === 'invalid'
+              ? 'QR meja tidak valid. Silakan scan ulang QR di meja Anda.'
+              : 'Belum ada meja. Silakan scan QR di meja untuk mulai memesan.'}
+          </div>
+        </div>
+      )}
 
       <HomeBanner banners={banners} />
 

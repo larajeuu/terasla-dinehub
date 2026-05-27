@@ -14,4 +14,15 @@ export const ROUTES = {
     orders: '/merchant/orders',
     profile: '/merchant/profile',
   },
+  admin: {
+    login: '/admin',
+    dashboard: '/admin/dashboard',
+    transactions: '/admin/transactions',
+    merchants: '/admin/merchants',
+    withdrawals: '/admin/withdrawals',
+    customers: '/admin/customers',
+    reports: '/admin/reports',
+    system: '/admin/system',
+    logs: '/admin/logs',
+  },
 };

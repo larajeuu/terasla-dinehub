@@ -99,6 +99,18 @@ export const CheckIcon = ({ size = 14, color = 'currentColor', strokeWidth = 3 }
   </svg>
 );
 
+export const CameraIcon = ({ size = 22, color = 'currentColor', strokeWidth = 1.8 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <path
+      d="M4 8.5A2.5 2.5 0 016.5 6h1.2l1.2-1.6A1.5 1.5 0 0110.1 4h3.8a1.5 1.5 0 011.2.6L16.3 6h1.2A2.5 2.5 0 0120 8.5v9A2.5 2.5 0 0117.5 20h-11A2.5 2.5 0 014 17.5v-9z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinejoin="round"
+    />
+    <circle cx="12" cy="13" r="3.5" stroke={color} strokeWidth={strokeWidth} />
+  </svg>
+);
+
 export const WalletIcon = ({ size = 18, color = 'currentColor', strokeWidth = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <rect x="3" y="6" width="18" height="14" rx="2.5" stroke={color} strokeWidth={strokeWidth} />

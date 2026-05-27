@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useCartStore from '../../../store/cartStore';
+import useTableStore from '../../../store/tableStore';
 import { formatRupiah } from '../../../shared/utils/format';
 import CartHeader from './components/CartHeader';
 import CartItemList from './components/CartItemList';
@@ -7,14 +8,25 @@ import PaymentMethodCard from './components/PaymentMethodCard';
 import CartSummary from './components/CartSummary';
 import EmptyCart from './components/EmptyCart';
 import OrderInfoModal from './components/OrderInfoModal';
+import ScanQrModal from './components/ScanQrModal';
 
 const Cart = () => {
   const items = useCartStore((s) => s.items);
   const totalItems = useCartStore((s) => s.getTotalItems());
   const totalPrice = useCartStore((s) => s.getTotalPrice());
+  const tableCode = useTableStore((s) => s.code);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
+  const [scanModalOpen, setScanModalOpen] = useState(false);
 
   const isEmpty = items.length === 0;
+
+  const handleOrderClick = () => {
+    if (!tableCode) {
+      setScanModalOpen(true);
+      return;
+    }
+    setOrderModalOpen(true);
+  };
 
   return (
     <div
@@ -47,7 +59,7 @@ const Cart = () => {
             }}
           />
           <button
-            onClick={() => setOrderModalOpen(true)}
+            onClick={handleOrderClick}
             className="pointer-events-auto relative w-full flex items-center justify-between px-5 py-3.5 rounded-2xl text-white transition-all active:scale-[0.98] hover:brightness-110"
             style={{
               background:
@@ -92,6 +104,11 @@ const Cart = () => {
       <OrderInfoModal
         open={orderModalOpen}
         onClose={() => setOrderModalOpen(false)}
+      />
+
+      <ScanQrModal
+        open={scanModalOpen}
+        onClose={() => setScanModalOpen(false)}
       />
     </div>
   );
