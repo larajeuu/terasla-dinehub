@@ -4,6 +4,7 @@ import OrderSearch from './components/OrderSearch';
 import OrderTabs from './components/OrderTabs';
 import OrderCard from './components/OrderCard';
 import OrderDetail from './components/OrderDetail';
+import BottomNavbar from '../../components/BottomNavbar';
 
 export const ordersData = [
   {
@@ -81,7 +82,7 @@ const Dashboard = () => {
   const countByStatus = (status) => orders.filter((o) => o.status === status).length;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#f5f5f5' }}>
+    <div className="min-h-screen flex flex-col pb-20" style={{ background: '#f5f5f5' }}>
       <DashboardHeader
         tokoName="Kantin Ea Ea"
         lokasi="Blok E9 · Makanan"
@@ -126,6 +127,9 @@ const Dashboard = () => {
           onUpdateStatus={updateStatus}
         />
       )}
+
+      <BottomNavbar notifCount={countByStatus('Baru')} />
+
     </div>
   );
 };

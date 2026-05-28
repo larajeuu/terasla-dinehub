@@ -14,14 +14,14 @@ const OrderDetail = ({ order, onClose, onUpdateStatus }) => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40"
+        className="fixed inset-0 z-[55]"
         style={{ background: 'rgba(0,0,0,0.4)' }}
         onClick={onClose}
       />
 
       {/* Bottom sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-white"
+        className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-3xl bg-white"
         style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.12)' }}
       >
         {/* Handle */}
