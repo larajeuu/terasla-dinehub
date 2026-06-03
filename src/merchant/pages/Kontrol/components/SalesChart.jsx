@@ -1,26 +1,32 @@
 import { useState } from 'react';
 import { formatRupiah } from '../../../../shared/utils/format';
 
-const monthlyData = [
-  { day: '1', value: 120000 },
-  { day: '5', value: 85000 },
-  { day: '10', value: 175000 },
-  { day: '15', value: 95000 },
-  { day: '20', value: 210000 },
-  { day: '25', value: 320000 },
-  { day: '30', value: 245000 },
-];
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+const MONTHLY_SAMPLE = [120000, 85000, 175000, 95000, 210000];
+
+const currentMonthIndex = new Date().getMonth(); // 5 = Juni (0-based)
+
+const monthlyData = MONTH_NAMES.map((name, i) => ({
+  day: name,
+  value: i < currentMonthIndex ? (MONTHLY_SAMPLE[i] ?? 0) : 0,
+}));
 
 const SalesChart = ({ data }) => {
   const [period, setPeriod] = useState('Mingguan');
   const [tooltip, setTooltip] = useState(null);
 
-  const chartData = period === 'Mingguan' ? data : monthlyData;
-  const maxValue = Math.max(...chartData.map((d) => d.value));
+  const isBulanan = period === 'Bulanan';
+  const chartData = isBulanan ? monthlyData : data;
+  const maxValue = Math.max(...chartData.map((d) => d.value), 1);
+
   const chartHeight = 140;
-  const chartWidth = 300;
-  const barWidth = 28;
+  const chartWidth = 340;
+  const barWidth = isBulanan ? 18 : 28;
   const gap = (chartWidth - barWidth * chartData.length) / (chartData.length + 1);
+
+  const lastFilledIndex = chartData.reduce((last, item, i) => (item.value > 0 ? i : last), -1);
+
+  const tooltipWidth = 64;
 
   return (
     <div
@@ -51,61 +57,76 @@ const SalesChart = ({ data }) => {
       </div>
 
       {/* Chart */}
-      <div className="relative w-full overflow-x-auto">
+      <div className="relative w-full">
         <svg
           width="100%"
           viewBox={`0 0 ${chartWidth} ${chartHeight + 24}`}
           preserveAspectRatio="xMidYMid meet"
         >
           {chartData.map((item, index) => {
-            const barHeight = (item.value / maxValue) * chartHeight;
+            const isEmpty = item.value === 0;
+            const barHeight = isEmpty ? 0 : (item.value / maxValue) * chartHeight;
             const x = gap + index * (barWidth + gap);
             const y = chartHeight - barHeight;
+            const isHighlighted = index === lastFilledIndex;
+
+            const ttX = Math.min(chartWidth - tooltipWidth, Math.max(0, x + barWidth / 2 - tooltipWidth / 2));
 
             return (
               <g key={index}>
-                {/* Bar */}
-                <rect
-                  x={x}
-                  y={y}
-                  width={barWidth}
-                  height={barHeight}
-                  rx={6}
-                  fill={index === chartData.length - 1 ? '#1D3A27' : '#C8961A'}
-                  opacity={index === chartData.length - 1 ? 1 : 0.75}
-                  onMouseEnter={() => setTooltip({ index, value: item.value, x, y })}
-                  onMouseLeave={() => setTooltip(null)}
-                  style={{ cursor: 'pointer' }}
-                />
+                {isEmpty ? (
+                  /* Placeholder tipis untuk bulan kosong */
+                  <rect
+                    x={x}
+                    y={chartHeight - 4}
+                    width={barWidth}
+                    height={4}
+                    rx={2}
+                    fill="#e5e7eb"
+                  />
+                ) : (
+                  <rect
+                    x={x}
+                    y={y}
+                    width={barWidth}
+                    height={barHeight}
+                    rx={6}
+                    fill={isHighlighted ? '#1D3A27' : '#C8961A'}
+                    opacity={isHighlighted ? 1 : 0.75}
+                    onMouseEnter={() => setTooltip({ index, value: item.value, x, y })}
+                    onMouseLeave={() => setTooltip(null)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                )}
 
-                {/* Label hari */}
+                {/* Label bulan/hari */}
                 <text
                   x={x + barWidth / 2}
                   y={chartHeight + 16}
                   textAnchor="middle"
-                  fontSize={10}
-                  fill="#9ca3af"
+                  fontSize={isBulanan ? 8 : 10}
+                  fill={isEmpty ? '#d1d5db' : '#9ca3af'}
                   fontFamily="Inter"
                 >
                   {item.day}
                 </text>
 
                 {/* Tooltip */}
-                {tooltip?.index === index && (
+                {tooltip?.index === index && !isEmpty && (
                   <g>
                     <rect
-                      x={x - 10}
+                      x={ttX}
                       y={y - 30}
-                      width={barWidth + 20}
+                      width={tooltipWidth}
                       height={22}
                       rx={6}
                       fill="#1D3A27"
                     />
                     <text
-                      x={x + barWidth / 2}
+                      x={ttX + tooltipWidth / 2}
                       y={y - 14}
                       textAnchor="middle"
-                      fontSize={9}
+                      fontSize={8}
                       fill="white"
                       fontFamily="Inter"
                       fontWeight="600"
