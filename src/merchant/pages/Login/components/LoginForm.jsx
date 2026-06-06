@@ -25,7 +25,7 @@ const LoginForm = () => {
         <p className="text-white font-bold text-xl" style={{ fontFamily: "'Poppins', sans-serif" }}>
           Selamat Datang
         </p>
-        <p className="font-bold text-xl italic" style={{ color: '#C8961A', fontFamily: "'Poppins', sans-serif" }}>
+        <p className="font-bold text-xl" style={{ color: '#C8961A', fontFamily: "'Poppins', sans-serif" }}>
           Kembali
         </p>
         <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.6)', fontFamily: "'Inter', sans-serif" }}>
