@@ -26,7 +26,7 @@ export const getProducts = async (params = {}) => {
     return results;
   }
 
-  const response = await api.get('/products', { params });
+  const response = await api.get('/products/', { params });
   return response.data;
 };
 

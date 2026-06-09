@@ -23,7 +23,7 @@ export const getTenants = async (params = {}) => {
     return results;
   }
 
-  const response = await api.get('/merchants', { params });
+  const response = await api.get('/merchants/', { params });
   return response.data;
 };
 
