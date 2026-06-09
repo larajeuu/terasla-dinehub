@@ -3,9 +3,9 @@ import CartItem from './CartItem';
 const groupByTenant = (items) => {
   const map = new Map();
   for (const item of items) {
-    const key = item.tenantId || item.tenantName || 'lain';
+    const key = item.merchant_id || item.merchant_nama || 'lain';
     if (!map.has(key)) {
-      map.set(key, { tenantName: item.tenantName, items: [] });
+      map.set(key, { merchant_nama: item.merchant_nama, items: [] });
     }
     map.get(key).items.push(item);
   }
@@ -28,7 +28,7 @@ const CartItemList = ({ items }) => {
               className="text-sm font-bold text-gray-800"
               style={{ fontFamily: "'Poppins', sans-serif" }}
             >
-              {group.tenantName}
+              {group.merchant_nama}
             </h3>
             <span
               className="text-[11px] text-gray-400"

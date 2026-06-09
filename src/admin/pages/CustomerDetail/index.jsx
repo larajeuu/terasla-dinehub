@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import PageContainer from '../../components/PageContainer';
 import Badge from '../../components/Badge';
@@ -12,37 +12,61 @@ import {
   PhoneIcon,
   EyeIcon,
 } from '../../components/icons';
-import { dummyAdminCustomers } from '../../../data/dummy/adminCustomers';
-import { dummyAdminOrdersSummary } from '../../../data/dummy/adminOrders';
+import { getCustomerById, updateCustomerFlag } from '../../../services/customerService';
 import { formatCurrency, formatDate, formatDateShort } from '../../utils/format';
 
 const CustomerDetail = () => {
   const { customerId } = useParams();
   const navigate = useNavigate();
 
-  const initial = useMemo(
-    () => dummyAdminCustomers.find((c) => c.id === customerId),
-    [customerId]
-  );
-  const [customer, setCustomer] = useState(initial);
+  const [customer, setCustomer] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const orders = useMemo(
-    () =>
-      dummyAdminOrdersSummary
-        .filter((o) => o.customerId === customerId)
-        .sort((a, b) => new Date(b.date) - new Date(a.date)),
-    [customerId]
-  );
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const { customer: cust, orders: ord } = await getCustomerById(customerId);
+        if (!alive) return;
+        setCustomer(cust);
+        setOrders(
+          [...ord].sort((a, b) => new Date(b.date) - new Date(a.date))
+        );
+      } catch {
+        if (alive) setCustomer(null);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [customerId]);
 
   const orderStats = useMemo(() => {
     const total = orders.length;
-    const totalSpent = orders.reduce((s, o) => s + o.totalAmount, 0);
+    const totalSpent = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const done = orders.filter((o) => o.status === 'done').length;
     const cancelled = orders.filter((o) => o.status === 'cancelled').length;
-    const tenantSet = new Set();
-    orders.forEach((o) => o.items.forEach((i) => tenantSet.add(i.tenantId)));
-    return { total, totalSpent, done, cancelled, tenantCount: tenantSet.size };
+    // Summary tidak memuat item, jadi pakai akumulasi tenant per order.
+    const tenantCount = orders.reduce((s, o) => s + (o.tenantCount || 0), 0);
+    return { total, totalSpent, done, cancelled, tenantCount };
   }, [orders]);
+
+  if (loading) {
+    return (
+      <PageContainer title="Memuat Customer..." subtitle={`Customer ID: ${customerId}`}>
+        <div
+          className="bg-white rounded-2xl border p-10 text-center text-sm text-gray-400"
+          style={{ borderColor: '#e5e7eb', fontFamily: "'Inter', sans-serif" }}
+        >
+          Memuat data customer...
+        </div>
+      </PageContainer>
+    );
+  }
 
   if (!customer) {
     return (
@@ -67,7 +91,15 @@ const CustomerDetail = () => {
     );
   }
 
-  const toggleFlag = () => setCustomer((p) => ({ ...p, flagged: !p.flagged }));
+  const toggleFlag = async () => {
+    const next = !customer.flagged;
+    setCustomer((p) => ({ ...p, flagged: next }));
+    try {
+      await updateCustomerFlag(customer.id, next);
+    } catch {
+      setCustomer((p) => ({ ...p, flagged: !next }));
+    }
+  };
 
   return (
     <PageContainer
@@ -186,13 +218,13 @@ const CustomerDetail = () => {
             Riwayat Order
           </h2>
           <p className="text-xs text-gray-500 mt-0.5">
-            {orders.length} order tampil di sistem dummy
+            {orders.length} order tercatat
           </p>
         </div>
 
         {orders.length === 0 ? (
           <div className="p-10 text-center text-gray-400 text-sm">
-            Belum ada riwayat order di sistem dummy
+            Belum ada riwayat order
           </div>
         ) : (
           <div className="overflow-x-auto">

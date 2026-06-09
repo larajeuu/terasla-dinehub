@@ -10,21 +10,18 @@ export const getProducts = async (params = {}) => {
     await delay(300);
     let results = [...dummyProducts];
     if (params.category && params.category !== 'Semua') {
-      results = results.filter((p) => p.category === params.category);
+      results = results.filter((p) => p.merchant_category === params.category);
     }
     if (params.search) {
       const q = params.search.toLowerCase();
       results = results.filter(
         (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.tenantName.toLowerCase().includes(q)
+          p.nama.toLowerCase().includes(q) ||
+          (p.merchant_nama || '').toLowerCase().includes(q)
       );
     }
-    if (params.tenantId) {
-      results = results.filter((p) => p.tenantId === params.tenantId);
-    }
-    if (params.popular) {
-      results = results.filter((p) => p.isPopular);
+    if (params.merchant_id != null) {
+      results = results.filter((p) => p.merchant_id === Number(params.merchant_id));
     }
     return results;
   }
@@ -36,7 +33,7 @@ export const getProducts = async (params = {}) => {
 export const getProductById = async (id) => {
   if (USE_DUMMY) {
     await delay(200);
-    return dummyProducts.find((p) => p.id === id) ?? null;
+    return dummyProducts.find((p) => String(p.id) === String(id)) ?? null;
   }
   const response = await api.get(`/products/${id}`);
   return response.data;

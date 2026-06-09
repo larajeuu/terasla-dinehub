@@ -22,7 +22,7 @@ const Restaurant = () => {
       className="min-h-screen pb-24"
       style={{ background: '#f9fafb', fontFamily: "'Inter', sans-serif" }}
     >
-      <RestaurantHeader title={tenant?.name} />
+      <RestaurantHeader title={tenant?.nama} />
 
       {error ? (
         <div className="text-center py-12 px-4">
@@ -46,7 +46,7 @@ const Restaurant = () => {
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder={`Cari produk di ${tenant?.name || 'tenant'}...`}
+            placeholder={`Cari produk di ${tenant?.nama || 'tenant'}...`}
           />
 
           <div className="mt-5 px-4">

@@ -13,8 +13,8 @@ export const getTenants = async (params = {}) => {
       const q = params.search.toLowerCase();
       results = results.filter(
         (t) =>
-          t.name.toLowerCase().includes(q) ||
-          t.category.toLowerCase().includes(q)
+          t.nama.toLowerCase().includes(q) ||
+          (t.category || '').toLowerCase().includes(q)
       );
     }
     if (params.block) {
@@ -23,15 +23,15 @@ export const getTenants = async (params = {}) => {
     return results;
   }
 
-  const response = await api.get('/tenants', { params });
+  const response = await api.get('/merchants', { params });
   return response.data;
 };
 
 export const getTenantById = async (id) => {
   if (USE_DUMMY) {
     await delay(200);
-    return dummyTenants.find((t) => t.id === id) ?? null;
+    return dummyTenants.find((t) => String(t.id) === String(id)) ?? null;
   }
-  const response = await api.get(`/tenants/${id}`);
+  const response = await api.get(`/merchants/${id}`);
   return response.data;
 };

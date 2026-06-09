@@ -18,20 +18,12 @@ const ProductCard = ({ product, showTenant = true }) => {
         {/* Image */}
         <div className="relative">
           <img
-            src={product.image}
-            alt={product.name}
+            src={product.foto || 'https://placehold.co/400x300/e5e7eb/9ca3af?text=No+Image'}
+            alt={product.nama}
             className="w-full object-cover"
             style={{ height: 110 }}
             loading="lazy"
           />
-          {product.promoTag && (
-            <span
-              className="absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: '#C8961A' }}
-            >
-              {product.promoTag}
-            </span>
-          )}
           {qty > 0 && (
             <span
               className="absolute top-2 right-2 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center"
@@ -47,22 +39,22 @@ const ProductCard = ({ product, showTenant = true }) => {
           <p
             className="text-sm font-semibold leading-snug text-gray-800 truncate"
             style={{ fontFamily: "'Poppins', sans-serif" }}
-            title={product.name}
+            title={product.nama}
           >
-            {product.name}
+            {product.nama}
           </p>
           <p
             className="text-sm font-bold"
             style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
           >
-            {formatRupiah(product.price)}
+            {formatRupiah(product.harga)}
           </p>
           {showTenant && (
             <p
               className="text-[11px] text-gray-400 truncate"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              {product.tenantName}
+              {product.merchant_nama}
             </p>
           )}
 

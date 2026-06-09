@@ -5,7 +5,7 @@ import QtyControl from '../../../components/QtyControl';
 
 const CartItem = ({ item }) => {
   const removeItem = useCartStore((s) => s.removeItem);
-  const subtotal = item.price * item.qty;
+  const subtotal = item.harga * item.qty;
 
   return (
     <div
@@ -20,8 +20,8 @@ const CartItem = ({ item }) => {
         style={{ width: 72, height: 72 }}
       >
         <img
-          src={item.image}
-          alt={item.name}
+          src={item.foto || 'https://placehold.co/400x300/e5e7eb/9ca3af?text=No+Image'}
+          alt={item.nama}
           className="w-full h-full object-cover"
           loading="lazy"
         />
@@ -33,15 +33,15 @@ const CartItem = ({ item }) => {
             <p
               className="text-sm font-semibold text-gray-900 leading-snug truncate"
               style={{ fontFamily: "'Poppins', sans-serif" }}
-              title={item.name}
+              title={item.nama}
             >
-              {item.name}
+              {item.nama}
             </p>
             <p
               className="text-[11px] text-gray-400 truncate"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              {item.tenantName}
+              {item.merchant_nama}
             </p>
           </div>
           <button
@@ -59,7 +59,7 @@ const CartItem = ({ item }) => {
               className="text-[11px] text-gray-400 leading-none"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              {item.qty} x {formatRupiah(item.price)}
+              {item.qty} x {formatRupiah(item.harga)}
             </p>
             <p
               className="text-sm font-bold leading-tight mt-1 tabular-nums"

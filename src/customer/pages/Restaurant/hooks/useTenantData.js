@@ -16,13 +16,21 @@ const useTenantData = (tenantId) => {
       setError(null);
       const [tenantData, productsData] = await Promise.all([
         getTenantById(tenantId),
-        getProducts({ tenantId }),
+        getProducts({ merchant_id: tenantId }),
       ]);
       if (!tenantData) {
         setError('Tenant tidak ditemukan');
       }
       setTenant(tenantData);
-      setProducts(productsData);
+      // Lengkapi nama merchant pada tiap produk (response /products tidak
+      // menyertakannya) supaya konsisten dengan data yang dipakai keranjang.
+      setProducts(
+        productsData.map((p) => ({
+          ...p,
+          merchant_nama: p.merchant_nama ?? tenantData?.nama ?? null,
+          merchant_category: p.merchant_category ?? tenantData?.category ?? null,
+        }))
+      );
     } catch (err) {
       setError(err.message || 'Gagal memuat data tenant');
     } finally {
@@ -36,7 +44,7 @@ const useTenantData = (tenantId) => {
 
   const filteredProducts = products.filter((p) => {
     const q = searchQuery.toLowerCase();
-    return !q || p.name.toLowerCase().includes(q);
+    return !q || (p.nama || '').toLowerCase().includes(q);
   });
 
   return {
