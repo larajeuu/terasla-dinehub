@@ -1,15 +1,36 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageContainer from '../../components/PageContainer';
 import StatCard from '../../components/StatCard';
 import DataTable from '../../components/DataTable';
 import { UsersIcon, FlagIcon, EyeIcon, RevenueIcon } from '../../components/icons';
-import { dummyAdminCustomers } from '../../../data/dummy/adminCustomers';
+import { getCustomers, updateCustomerFlag } from '../../../services/customerService';
 import { formatCurrency, formatDateShort, formatDate } from '../../utils/format';
 
 const Customers = () => {
   const navigate = useNavigate();
-  const [customers, setCustomers] = useState(dummyAdminCustomers);
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getCustomers();
+        if (alive) setCustomers(data);
+      } catch (err) {
+        if (alive) setError(err.message || 'Gagal memuat data customer');
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const total = customers.length;
@@ -19,8 +40,16 @@ const Customers = () => {
     return { total, flagged, totalSpent, totalOrders };
   }, [customers]);
 
-  const toggleFlag = (id) => {
-    setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, flagged: !c.flagged } : c)));
+  const toggleFlag = async (id) => {
+    const current = customers.find((c) => c.id === id);
+    const next = !current?.flagged;
+    // Optimistic update, rollback bila API gagal.
+    setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, flagged: next } : c)));
+    try {
+      await updateCustomerFlag(id, next);
+    } catch {
+      setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, flagged: !next } : c)));
+    }
   };
 
   const goDetail = (id) => navigate(`/admin/customers/${id}`);
@@ -150,13 +179,29 @@ const Customers = () => {
         <StatCard label="Flagged" value={stats.flagged} icon={FlagIcon} iconBg="#ef4444" />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={customers}
-        searchKeys={['id', 'email', 'phone']}
-        pageSize={10}
-        onRowClick={(row) => goDetail(row.id)}
-      />
+      {error ? (
+        <div
+          className="bg-white rounded-2xl border p-10 text-center text-sm text-red-600"
+          style={{ borderColor: '#fecaca' }}
+        >
+          {error}
+        </div>
+      ) : loading ? (
+        <div
+          className="bg-white rounded-2xl border p-10 text-center text-sm text-gray-400"
+          style={{ borderColor: '#e5e7eb' }}
+        >
+          Memuat data customer...
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={customers}
+          searchKeys={['id', 'email', 'phone']}
+          pageSize={10}
+          onRowClick={(row) => goDetail(row.id)}
+        />
+      )}
     </PageContainer>
   );
 };

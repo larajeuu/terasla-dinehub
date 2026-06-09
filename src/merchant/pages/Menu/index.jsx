@@ -4,6 +4,7 @@ import MenuSearch from './components/MenuSearch';
 import MenuTabs from './components/MenuTabs';
 import MenuCard from './components/MenuCard';
 import MenuDetail from './components/MenuDetail';
+import MenuAdd from './components/MenuAdd';
 import BottomNavbar from '../../components/BottomNavbar';
 
 export const menuData = [
@@ -68,6 +69,7 @@ const MenuPage = () => {
   const [activeTab, setActiveTab] = useState('Semua');
   const [search, setSearch] = useState('');
   const [selectedMenu, setSelectedMenu] = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
 
   const toggleAvailable = (id) => {
     setMenus((prev) =>
@@ -80,6 +82,13 @@ const MenuPage = () => {
       prev.map((m) => (m.id === updatedMenu.id ? updatedMenu : m))
     );
     setSelectedMenu(null);
+  };
+
+  const addMenu = (newMenu) => {
+    const maxId = menus.reduce((max, m) => Math.max(max, parseInt(m.id)), 0);
+    const newId = String(maxId + 1).padStart(4, '0');
+    setMenus((prev) => [...prev, { ...newMenu, id: newId }]);
+    setShowAdd(false);
   };
 
   const filteredMenus = menus
@@ -101,6 +110,10 @@ const MenuPage = () => {
         onSave={updateMenu}
       />
     );
+  }
+
+  if (showAdd) {
+    return <MenuAdd onBack={() => setShowAdd(false)} onAdd={addMenu} />;
   }
 
   return (
@@ -140,6 +153,7 @@ const MenuPage = () => {
 
       {/* Floating button tambah menu */}
       <button
+        onClick={() => setShowAdd(true)}
         className="fixed bottom-20 right-4 flex items-center gap-2 px-4 py-3 rounded-2xl text-white font-semibold text-sm transition-all active:scale-95"
         style={{
           background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)',

@@ -3,7 +3,8 @@ import { StarIcon, ClockIcon } from '../../../../shared/components/icons';
 
 const RestaurantInfo = ({ tenant }) => {
   if (!tenant) return null;
-  const accentColor = tenant.color || '#1D3A27';
+  const accentColor = '#1D3A27';
+  const isOpen = tenant.status === 'active';
 
   return (
     <section className="mx-4 mt-4 bg-white rounded-2xl p-4" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6' }}>
@@ -13,7 +14,7 @@ const RestaurantInfo = ({ tenant }) => {
             className="text-lg font-bold leading-tight mb-0.5"
             style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
           >
-            {tenant.name}
+            {tenant.nama}
           </h2>
           <p
             className="text-xs text-gray-500 mb-2"
@@ -32,15 +33,14 @@ const RestaurantInfo = ({ tenant }) => {
                 {tenant.rating}
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <ClockIcon size={13} />
+            {tenant.owner && (
               <span
                 className="text-xs text-gray-500"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
-                {tenant.openHours} WIB
+                · {tenant.owner}
               </span>
-            </div>
+            )}
           </div>
         </div>
 
@@ -54,9 +54,9 @@ const RestaurantInfo = ({ tenant }) => {
           className="text-white text-xs font-bold px-2.5 py-1 rounded-md shrink-0 tracking-wide"
           style={{ background: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
         >
-          {tenant.blockCode || tenant.block}
+          {tenant.block}
         </span>
-        {tenant.isOpen ? (
+        {isOpen ? (
           <span
             className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full shrink-0"
             style={{

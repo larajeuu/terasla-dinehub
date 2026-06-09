@@ -4,6 +4,22 @@ import { useNavigate } from 'react-router-dom';
 const LoginForm = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({});
+
+  const handleMasuk = () => {
+    const newErrors = {};
+    if (!email.trim()) newErrors.email = 'Email / No. HP wajib diisi';
+    if (!password.trim()) newErrors.password = 'Kata sandi wajib diisi';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    // nanti diganti API call
+    navigate('/merchant/dashboard');
+  };
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#f5f5f5' }}>
@@ -25,7 +41,7 @@ const LoginForm = () => {
         <p className="text-white font-bold text-xl" style={{ fontFamily: "'Poppins', sans-serif" }}>
           Selamat Datang
         </p>
-        <p className="font-bold text-xl" style={{ color: '#C8961A', fontFamily: "'Poppins', sans-serif" }}>
+        <p className="font-bold text-xl italic" style={{ color: '#C8961A', fontFamily: "'Poppins', sans-serif" }}>
           Kembali
         </p>
         <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.6)', fontFamily: "'Inter', sans-serif" }}>
@@ -45,9 +61,16 @@ const LoginForm = () => {
             <input
               type="text"
               placeholder="email@contoh.com atau 08xxxxxxxxxx"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-              style={{ border: '1px solid #e5e7eb', fontFamily: "'Inter', sans-serif", color: '#374151' }}
+              style={{
+                border: `1px solid ${errors.email ? '#ef4444' : '#e5e7eb'}`,
+                fontFamily: "'Inter', sans-serif",
+                color: '#374151',
+              }}
             />
+            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
 
           {/* Kata Sandi */}
@@ -59,8 +82,14 @@ const LoginForm = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Min. 8 karakter"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none pr-11"
-                style={{ border: '1px solid #e5e7eb', fontFamily: "'Inter', sans-serif", color: '#374151' }}
+                style={{
+                  border: `1px solid ${errors.password ? '#ef4444' : '#e5e7eb'}`,
+                  fontFamily: "'Inter', sans-serif",
+                  color: '#374151',
+                }}
               />
               <button
                 onClick={() => setShowPassword(!showPassword)}
@@ -80,18 +109,22 @@ const LoginForm = () => {
                 )}
               </button>
             </div>
+            {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
           </div>
 
           {/* Lupa kata sandi */}
           <div className="flex justify-end mb-6">
-            <span className="text-xs font-medium cursor-pointer" style={{ color: '#1D3A27', fontFamily: "'Inter', sans-serif" }}>
+            <span
+              className="text-xs font-medium cursor-pointer"
+              style={{ color: '#1D3A27', fontFamily: "'Inter', sans-serif" }}
+            >
               Lupa kata sandi?
             </span>
           </div>
 
           {/* Tombol Masuk */}
           <button
-            onClick={() => navigate('/merchant/dashboard')}
+            onClick={handleMasuk}
             className="w-full py-3.5 rounded-2xl font-semibold text-sm text-white transition-all active:scale-95"
             style={{
               background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)',

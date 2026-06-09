@@ -1,30 +1,50 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../../store/authStore';
+import api from '../../../services/api';
 
 const Login = () => {
-  const navigate = useNavigate();
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const [email, setEmail] = useState('admin@terasla.id');
-  const [password, setPassword] = useState('admin123');
-  const [loading, setLoading] = useState(false);
+  const navigate  = useNavigate();
+  const setAuth   = useAuthStore((s) => s.setAuth);
+  const [email,    setEmail]    = useState('admin@orderapi.com');
+  const [password, setPassword] = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email.trim() || !password) return;
     setLoading(true);
-    // Bypass auth — accept any input, set dummy admin
-    setTimeout(() => {
+    setError('');
+
+    try {
+      const { data } = await api.post('/auth/login', {
+        identifier: email.trim(),
+        password,
+      });
+
+      if (data.role !== 'admin') {
+        setError('Akun ini bukan admin. Gunakan akun admin untuk masuk.');
+        return;
+      }
+
       setAuth({
         user: {
-          id: 'admin-001',
-          name: 'Super Admin',
-          email: email || 'admin@terasla.id',
-          role: 'admin',
+          id:    data.user_id,
+          name:  data.nama ?? 'Admin',
+          email: data.email,
+          role:  data.role,
         },
-        token: 'dummy-admin-token-' + Date.now(),
+        token: data.access_token,
       });
-      navigate('/admin/dashboard');
-    }, 400);
+
+      navigate('/admin/dashboard', { replace: true });
+    } catch (err) {
+      const msg = err?.response?.data?.detail;
+      setError(msg ?? 'Login gagal. Periksa koneksi atau coba lagi.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,9 +70,10 @@ const Login = () => {
         style={{ background: '#C8961A', filter: 'blur(120px)', opacity: 0.12, transform: 'translate(30%, -30%)' }}
       />
       <div
-        className="absolute bottom-0 left-0 w-[28rem] h-[28rem] rounded-full pointer-events-none"
+        className="absolute bottom-0 left-0 w-md h-112 rounded-full pointer-events-none"
         style={{ background: '#4A7C40', filter: 'blur(140px)', opacity: 0.1, transform: 'translate(-30%, 30%)' }}
       />
+
 
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
@@ -116,8 +137,9 @@ const Login = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@terasla.id"
-                className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none transition-colors"
+                placeholder="admin@orderapi.com"
+                required
+                className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none transition-colors placeholder-white/30"
                 style={{
                   background: 'rgba(255,255,255,0.06)',
                   border: '1px solid rgba(255,255,255,0.12)',
@@ -134,6 +156,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                required
                 className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none transition-colors"
                 style={{
                   background: 'rgba(255,255,255,0.06)',
@@ -142,16 +165,18 @@ const Login = () => {
               />
             </div>
 
-            <div
-              className="text-[11px] rounded-xl px-3 py-2.5 leading-relaxed"
-              style={{
-                background: 'rgba(200, 150, 26, 0.1)',
-                border: '1px solid rgba(200, 150, 26, 0.2)',
-                color: 'rgba(200, 150, 26, 0.9)',
-              }}
-            >
-              <strong>Mode Dev:</strong> Login di-bypass. Klik <em>Masuk</em> dengan input apapun untuk akses dashboard.
-            </div>
+            {error && (
+              <div
+                className="text-[12px] rounded-xl px-3 py-2.5 leading-relaxed"
+                style={{
+                  background: 'rgba(239,68,68,0.12)',
+                  border: '1px solid rgba(239,68,68,0.3)',
+                  color: '#fca5a5',
+                }}
+              >
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
@@ -164,7 +189,7 @@ const Login = () => {
                 boxShadow: '0 4px 20px rgba(200, 150, 26, 0.35)',
               }}
             >
-              {loading ? 'Memuat...' : 'Masuk'}
+              {loading ? 'Memverifikasi...' : 'Masuk'}
             </button>
           </form>
         </div>

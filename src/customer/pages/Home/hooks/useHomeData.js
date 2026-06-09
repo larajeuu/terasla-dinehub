@@ -21,7 +21,19 @@ const useHomeData = () => {
         getProducts(),
         getTenants(),
       ]);
-      setAllProducts(productsData);
+      // Response /products tidak menyertakan info merchant, jadi join manual
+      // dengan daftar merchant untuk dapat nama & kategori tenant (dipakai
+      // tampilan kartu produk dan filter kategori).
+      const merchantById = new Map(tenantsData.map((t) => [t.id, t]));
+      const enrichedProducts = productsData.map((p) => {
+        const m = merchantById.get(p.merchant_id);
+        return {
+          ...p,
+          merchant_nama: p.merchant_nama ?? m?.nama ?? null,
+          merchant_category: p.merchant_category ?? m?.category ?? null,
+        };
+      });
+      setAllProducts(enrichedProducts);
       setAllTenants(tenantsData);
     } catch (err) {
       setError(err.message || 'Gagal memuat data');
@@ -38,10 +50,10 @@ const useHomeData = () => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       !q ||
-      p.name.toLowerCase().includes(q) ||
-      p.tenantName.toLowerCase().includes(q);
+      (p.nama || '').toLowerCase().includes(q) ||
+      (p.merchant_nama || '').toLowerCase().includes(q);
     const matchesCategory =
-      activeCategory === 'Semua' || p.category === activeCategory;
+      activeCategory === 'Semua' || p.merchant_category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -49,8 +61,8 @@ const useHomeData = () => {
     const q = searchQuery.toLowerCase();
     return (
       !q ||
-      t.name.toLowerCase().includes(q) ||
-      t.category.toLowerCase().includes(q)
+      (t.nama || '').toLowerCase().includes(q) ||
+      (t.category || '').toLowerCase().includes(q)
     );
   });
 

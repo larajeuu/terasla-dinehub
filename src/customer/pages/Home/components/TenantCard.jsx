@@ -4,7 +4,8 @@ import { StarIcon, ClockIcon } from '../../../../shared/components/icons';
 
 const TenantCard = ({ tenant }) => {
   const navigate = useNavigate();
-  const accentColor = tenant.color || '#1D3A27';
+  const accentColor = '#1D3A27';
+  const isOpen = tenant.status === 'active';
 
   return (
     <button
@@ -23,9 +24,9 @@ const TenantCard = ({ tenant }) => {
           <h3
             className="text-base font-bold leading-tight mb-0.5 truncate"
             style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
-            title={tenant.name}
+            title={tenant.nama}
           >
-            {tenant.name}
+            {tenant.nama}
           </h3>
 
           {/* Category */}
@@ -36,7 +37,7 @@ const TenantCard = ({ tenant }) => {
             {tenant.category}
           </p>
 
-          {/* Rating + Hours */}
+          {/* Rating */}
           <div className="flex items-center gap-3 mb-3 flex-wrap">
             <div className="flex items-center gap-1">
               <StarIcon size={14} />
@@ -47,25 +48,16 @@ const TenantCard = ({ tenant }) => {
                 {tenant.rating}
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <ClockIcon size={13} />
-              <span
-                className="text-xs text-gray-500"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                {tenant.openHours} WIB
-              </span>
-            </div>
           </div>
 
-          {/* Featured product */}
-          {tenant.featuredProduct && (
+          {/* Owner */}
+          {tenant.owner && (
             <div>
               <p
                 className="text-[10px] font-semibold tracking-wider text-gray-400 mb-1"
                 style={{ fontFamily: "'Poppins', sans-serif" }}
               >
-                PRODUK UNGGULAN
+                PEMILIK
               </p>
               <span
                 className="inline-block max-w-full text-xs font-medium px-2.5 py-1 rounded-full truncate"
@@ -75,9 +67,9 @@ const TenantCard = ({ tenant }) => {
                   fontFamily: "'Inter', sans-serif",
                   maxWidth: '100%',
                 }}
-                title={tenant.featuredProduct}
+                title={tenant.owner}
               >
-                {tenant.featuredProduct}
+                {tenant.owner}
               </span>
             </div>
           )}
@@ -95,10 +87,10 @@ const TenantCard = ({ tenant }) => {
           className="text-white text-xs font-bold px-2.5 py-1 rounded-md shrink-0 tracking-wide"
           style={{ background: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
         >
-          {tenant.blockCode || tenant.block}
+          {tenant.block}
         </span>
 
-        {tenant.isOpen ? (
+        {isOpen ? (
           <span
             className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full shrink-0"
             style={{

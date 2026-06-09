@@ -100,8 +100,8 @@ const ProductDetailModal = ({ product, open, onClose }) => {
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 100px)' }}>
           {/* Image */}
           <img
-            src={product.image}
-            alt={product.name}
+            src={product.foto || 'https://placehold.co/400x300/e5e7eb/9ca3af?text=No+Image'}
+            alt={product.nama}
             className="w-full object-cover"
             style={{ height: 220 }}
           />
@@ -117,7 +117,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                 fontFamily: "'Poppins', sans-serif",
               }}
             >
-              {product.tenantName}
+              {product.merchant_nama}
             </span>
 
             {/* Name */}
@@ -125,7 +125,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
               className="text-xl font-bold mb-1 text-gray-900"
               style={{ fontFamily: "'Poppins', sans-serif" }}
             >
-              {product.name}
+              {product.nama}
             </h2>
 
             {/* Price */}
@@ -133,7 +133,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
               className="text-xl font-bold mb-4"
               style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
             >
-              {formatRupiah(product.price)}
+              {formatRupiah(product.harga)}
             </p>
 
             {/* Description */}
@@ -148,12 +148,12 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                 className="text-sm text-gray-600 leading-relaxed"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
-                {product.description || 'Belum ada deskripsi untuk produk ini.'}
+                {product.deskripsi || 'Belum ada deskripsi untuk produk ini.'}
               </p>
             </div>
 
             {/* Category */}
-            {product.category && (
+            {(product.category?.nama_kategori || product.merchant_category) && (
               <div className="mt-4 flex items-center gap-2">
                 <span
                   className="text-xs font-semibold"
@@ -165,7 +165,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                   className="text-xs font-semibold px-2 py-0.5 rounded-full"
                   style={{ background: '#f3f4f6', color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
                 >
-                  {product.category}
+                  {product.category?.nama_kategori || product.merchant_category}
                 </span>
               </div>
             )}

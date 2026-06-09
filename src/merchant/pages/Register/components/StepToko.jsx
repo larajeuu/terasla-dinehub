@@ -3,12 +3,38 @@ import { useState } from 'react';
 const kategoriList = ['Minuman', 'Makanan', 'Jajanan', 'Kopi', 'Dessert', 'Lainnya'];
 
 const StepToko = ({ onNext }) => {
-  const [kategoriAktif, setKategoriAktif] = useState('Minuman');
+  const [kategoriAktif, setKategoriAktif] = useState('');
   const [foto, setFoto] = useState(null);
+  const [namaToko, setNamaToko] = useState('');
+  const [noLapak, setNoLapak] = useState('');
+  const [deskripsi, setDeskripsi] = useState('');
+  const [errors, setErrors] = useState({});
 
   const handleFoto = (e) => {
     const file = e.target.files[0];
-    if (file) setFoto(URL.createObjectURL(file));
+    if (file) {
+      setFoto(URL.createObjectURL(file));
+      setErrors((prev) => ({ ...prev, foto: '' }));
+    }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!foto) newErrors.foto = 'Foto toko wajib diupload';
+    if (!namaToko.trim()) newErrors.namaToko = 'Nama toko wajib diisi';
+    if (!kategoriAktif) newErrors.kategori = 'Pilih salah satu kategori';
+    if (!noLapak.trim()) newErrors.noLapak = 'No lapak wajib diisi';
+    if (!deskripsi.trim()) newErrors.deskripsi = 'Deskripsi wajib diisi';
+    return newErrors;
+  };
+
+  const handleNext = () => {
+    const newErrors = validate();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    onNext({ foto, namaToko, kategori: kategoriAktif, noLapak, deskripsi });
   };
 
   return (
@@ -25,7 +51,10 @@ const StepToko = ({ onNext }) => {
         <label className="text-sm font-medium text-gray-700 mb-1 block" style={{ fontFamily: "'Inter', sans-serif" }}>
           Foto / Logo Toko
         </label>
-        <label className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer" style={{ border: '1px solid #e5e7eb' }}>
+        <label
+          className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer"
+          style={{ border: `1px solid ${errors.foto ? '#ef4444' : '#e5e7eb'}` }}
+        >
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
             style={{ background: '#f3f4f6' }}
@@ -55,6 +84,7 @@ const StepToko = ({ onNext }) => {
           </div>
           <input type="file" accept="image/*" className="hidden" onChange={handleFoto} />
         </label>
+        {errors.foto && <p className="text-xs text-red-500 mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>{errors.foto}</p>}
       </div>
 
       {/* Nama Toko */}
@@ -65,9 +95,12 @@ const StepToko = ({ onNext }) => {
         <input
           type="text"
           placeholder="Nama toko kamu"
+          value={namaToko}
+          onChange={(e) => { setNamaToko(e.target.value); setErrors((prev) => ({ ...prev, namaToko: '' })); }}
           className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-          style={{ border: '1px solid #e5e7eb', fontFamily: "'Inter', sans-serif", color: '#374151' }}
+          style={{ border: `1px solid ${errors.namaToko ? '#ef4444' : '#e5e7eb'}`, fontFamily: "'Inter', sans-serif", color: '#374151' }}
         />
+        {errors.namaToko && <p className="text-xs text-red-500 mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>{errors.namaToko}</p>}
       </div>
 
       {/* Kategori */}
@@ -79,7 +112,7 @@ const StepToko = ({ onNext }) => {
           {kategoriList.map((kat) => (
             <button
               key={kat}
-              onClick={() => setKategoriAktif(kat)}
+              onClick={() => { setKategoriAktif(kat); setErrors((prev) => ({ ...prev, kategori: '' })); }}
               className="px-4 py-1.5 rounded-xl text-sm font-medium transition-all"
               style={{
                 background: kategoriAktif === kat ? '#e8f5e1' : '#f3f4f6',
@@ -92,6 +125,7 @@ const StepToko = ({ onNext }) => {
             </button>
           ))}
         </div>
+        {errors.kategori && <p className="text-xs text-red-500 mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>{errors.kategori}</p>}
       </div>
 
       {/* No Lapak */}
@@ -102,9 +136,12 @@ const StepToko = ({ onNext }) => {
         <input
           type="text"
           placeholder="Contoh: No. E/12"
+          value={noLapak}
+          onChange={(e) => { setNoLapak(e.target.value); setErrors((prev) => ({ ...prev, noLapak: '' })); }}
           className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-          style={{ border: '1px solid #e5e7eb', fontFamily: "'Inter', sans-serif", color: '#374151' }}
+          style={{ border: `1px solid ${errors.noLapak ? '#ef4444' : '#e5e7eb'}`, fontFamily: "'Inter', sans-serif", color: '#374151' }}
         />
+        {errors.noLapak && <p className="text-xs text-red-500 mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>{errors.noLapak}</p>}
       </div>
 
       {/* Deskripsi */}
@@ -115,14 +152,17 @@ const StepToko = ({ onNext }) => {
         <textarea
           placeholder="Ceritakan tentang toko kamu..."
           rows={3}
+          value={deskripsi}
+          onChange={(e) => { setDeskripsi(e.target.value); setErrors((prev) => ({ ...prev, deskripsi: '' })); }}
           className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
-          style={{ border: '1px solid #e5e7eb', fontFamily: "'Inter', sans-serif", color: '#374151' }}
+          style={{ border: `1px solid ${errors.deskripsi ? '#ef4444' : '#e5e7eb'}`, fontFamily: "'Inter', sans-serif", color: '#374151' }}
         />
+        {errors.deskripsi && <p className="text-xs text-red-500 mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>{errors.deskripsi}</p>}
       </div>
 
       {/* Tombol Lanjut */}
       <button
-        onClick={onNext}
+        onClick={handleNext}
         className="w-full py-3.5 rounded-2xl font-semibold text-sm text-white transition-all active:scale-95"
         style={{
           background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)',

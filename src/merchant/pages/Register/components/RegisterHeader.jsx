@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
 
 const steps = [
   { number: 1, label: 'Akun' },
@@ -45,9 +46,9 @@ const RegisterHeader = ({ currentStep, onBack }) => {
       {/* Stepper */}
       <div className="flex items-center justify-between">
         {steps.map((step, index) => (
-          <>
+          <React.Fragment key={step.number}>
             {/* Circle + Label */}
-            <div key={step.number} className="flex flex-col items-center">
+            <div className="flex flex-col items-center">
               <div
                 className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
                 style={{
@@ -88,7 +89,7 @@ const RegisterHeader = ({ currentStep, onBack }) => {
                 }}
               />
             )}
-          </>
+          </React.Fragment>
         ))}
       </div>
     </div>

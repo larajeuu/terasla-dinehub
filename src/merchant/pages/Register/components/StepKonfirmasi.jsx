@@ -1,3 +1,4 @@
+import { register } from '../../../../services/authService';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,13 +7,27 @@ const StepKonfirmasi = ({ dataAkun, dataToko }) => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleDaftar = () => {
+  const handleDaftar = async () => {
     if (!confirmed) {
       setError('Kamu harus mengonfirmasi data sudah benar');
       return;
     }
-    // nanti diganti dengan API call
-    navigate('/merchant/Login');
+    try {
+      await register({
+        nama: dataToko?.namaToko,
+        identifier: dataAkun?.email,
+        phone: dataAkun?.hp,
+        password: dataAkun?.password,
+        owner: dataAkun?.nama,
+        alamat: dataToko?.noLapak,
+        block: dataToko?.noLapak,
+        category: dataToko?.kategori,
+        deskripsi: dataToko?.deskripsi,
+      })
+      navigate('/merchant/login');
+    } catch (error) {
+      setError('Registrasi Akun Gagal. Coba lagi.');
+    }
   };
 
   return (
