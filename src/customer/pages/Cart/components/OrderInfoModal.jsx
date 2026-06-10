@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   CloseIcon,
   MailIcon,
   PhoneIcon,
 } from '../../../../shared/components/icons';
+import useCartStore from '../../../../store/cartStore';
+import useTableStore from '../../../../store/tableStore';
+import usePaymentStore from '../../../../store/paymentStore';
+import { createCustomerOrder } from '../../../../services/customerOrderService';
+import { chargePayment } from '../../../../services/paymentService';
 
 const Field = ({ icon, label, type, value, onChange, placeholder }) => (
   <label className="block">
@@ -33,10 +39,55 @@ const Field = ({ icon, label, type, value, onChange, placeholder }) => (
 );
 
 const OrderInfoModal = ({ open, onClose }) => {
+  const navigate = useNavigate();
+  const items = useCartStore((s) => s.items);
+  const clearCart = useCartStore((s) => s.clearCart);
+  const tableCode = useTableStore((s) => s.code);
+  const selectedMethod = usePaymentStore((s) => s.selectedMethod);
+
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [errMsg, setErrMsg] = useState('');
   const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
+
+  const handleLanjut = async () => {
+    setErrMsg('');
+    if (!selectedMethod?.id) {
+      setErrMsg('Pilih metode pembayaran dulu di halaman keranjang.');
+      return;
+    }
+    if (!items.length) {
+      setErrMsg('Keranjang masih kosong.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const order = await createCustomerOrder({
+        customer: {
+          nama: (email.trim() || phone.trim() || 'Tamu'),
+          email: email.trim() || null,
+          phone: phone.trim() || null,
+        },
+        dining_table_code: tableCode,
+        tipe_order: 'dine_in',
+        metode_pembayaran_id: selectedMethod.id,
+        items: items.map((i) => ({ product_id: i.id, jumlah: i.qty })),
+      });
+      const charge = await chargePayment({
+        id_pesanan: order.id,
+        metode_pembayaran_id: selectedMethod.id,
+      });
+      clearCart();
+      onClose();
+      navigate(`/payment/status/${charge.payment_id}`, { state: { charge } });
+    } catch (err) {
+      setErrMsg(err?.response?.data?.detail || 'Gagal membuat pesanan. Coba lagi.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -156,21 +207,30 @@ const OrderInfoModal = ({ open, onClose }) => {
         </div>
 
         <div className="px-6 pb-6 space-y-2">
+          {errMsg && (
+            <div className="text-[12px] rounded-xl px-3 py-2.5 leading-snug"
+                 style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
+              {errMsg}
+            </div>
+          )}
           <button
             type="button"
-            className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-all active:scale-[0.98] hover:brightness-110"
+            onClick={handleLanjut}
+            disabled={submitting}
+            className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-all active:scale-[0.98] hover:brightness-110 disabled:opacity-60"
             style={{
               background: 'linear-gradient(135deg, #2d5a3d 0%, #1D3A27 100%)',
               boxShadow: '0 6px 16px -4px rgba(29,58,39,0.4)',
               fontFamily: "'Poppins', sans-serif",
             }}
           >
-            Lanjut
+            {submitting ? 'Memproses...' : 'Lanjut'}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+            disabled={submitting}
+            className="w-full py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-60"
             style={{ fontFamily: "'Poppins', sans-serif" }}
           >
             Kembali

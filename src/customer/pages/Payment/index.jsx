@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import usePaymentStore from '../../../store/paymentStore';
 import { getPaymentMethods } from '../../../services/paymentMethodService';
+import { chargePayment } from '../../../services/paymentService';
 import PaymentHeader from './components/PaymentHeader';
 import PaymentSection from './components/PaymentSection';
 
@@ -20,12 +21,18 @@ const brandFromName = (nama = '') => {
 
 const Payment = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const selectedMethod = usePaymentStore((s) => s.selectedMethod);
   const setSelectedMethod = usePaymentStore((s) => s.setSelectedMethod);
+
+  // Jika dibuka dari layar status ("Ganti Metode"), kita charge ulang order yang
+  // sama (tanpa membuat order baru).
+  const rechargeOrderId = location.state?.rechargeOrderId ?? null;
 
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [draftId, setDraftId] = useState(selectedMethod?.id ?? null);
 
   const fetchMethods = useCallback(async () => {
@@ -53,13 +60,32 @@ const Payment = () => {
 
   const handleSelectDraft = (option) => setDraftId(option.id);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (draftId == null) return;
     const found = options.find((o) => o.id === draftId);
-    if (found) {
-      // id = metode_pembayaran_id yang dikirim ke BE saat membuat order.
-      setSelectedMethod({ ...found, groupLabel: GROUP_LABEL });
+    if (!found) return;
+
+    // Mode "Ganti Metode": charge ulang order yang sudah ada, lalu ke layar status.
+    if (rechargeOrderId) {
+      try {
+        setSubmitting(true);
+        const charge = await chargePayment({
+          id_pesanan: rechargeOrderId,
+          metode_pembayaran_id: found.id,
+        });
+        setSelectedMethod({ ...found, groupLabel: GROUP_LABEL });
+        navigate(`/payment/status/${charge.payment_id}`, { replace: true, state: { charge } });
+      } catch (err) {
+        alert(err?.response?.data?.detail || 'Gagal mengganti metode');
+      } finally {
+        setSubmitting(false);
+      }
+      return;
     }
+
+    // Mode normal: simpan pilihan, kembali ke keranjang.
+    // id = metode_pembayaran_id yang dikirim ke BE saat membuat order.
+    setSelectedMethod({ ...found, groupLabel: GROUP_LABEL });
     navigate(-1);
   };
 
@@ -109,7 +135,7 @@ const Payment = () => {
         />
         <button
           onClick={handleConfirm}
-          disabled={draftId == null}
+          disabled={draftId == null || submitting}
           className="pointer-events-auto relative w-full py-3.5 rounded-2xl text-white text-sm font-bold transition-all active:scale-[0.98] hover:brightness-110 disabled:opacity-50 disabled:active:scale-100"
           style={{
             background:
@@ -119,7 +145,7 @@ const Payment = () => {
             fontFamily: "'Poppins', sans-serif",
           }}
         >
-          Pilih Metode Ini
+          {submitting ? 'Memproses...' : (rechargeOrderId ? 'Bayar dengan Metode Ini' : 'Pilih Metode Ini')}
         </button>
       </div>
     </div>
