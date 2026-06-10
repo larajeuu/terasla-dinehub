@@ -4,6 +4,7 @@ import Restaurant from '../customer/pages/Restaurant';
 import Cart from '../customer/pages/Cart';
 import Payment from '../customer/pages/Payment';
 import PaymentStatus from '../customer/pages/PaymentStatus';
+import OrderSummary from '../customer/pages/OrderSummary';
 import Checkout from '../customer/pages/Checkout';
 
 const CustomerRoutes = () => (
@@ -13,6 +14,7 @@ const CustomerRoutes = () => (
     <Route path="/cart" element={<Cart />} />
     <Route path="/payment" element={<Payment />} />
     <Route path="/payment/status/:token" element={<PaymentStatus />} />
+    <Route path="/payment/status/:token/ringkasan" element={<OrderSummary />} />
     <Route path="/checkout" element={<Checkout />} />
   </Routes>
 );

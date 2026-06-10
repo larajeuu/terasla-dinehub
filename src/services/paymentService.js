@@ -21,3 +21,9 @@ export const simulatePaid = async (token) => {
   const res = await api.post(`/payments/status/${token}/simulate-paid`);
   return res.data;
 };
+
+// Ringkasan order (struk multi-tenant) terkait pembayaran — via token publik.
+export const getOrderByPaymentToken = async (token) => {
+  const res = await api.get(`/payments/status/${token}/order`);
+  return res.data;
+};

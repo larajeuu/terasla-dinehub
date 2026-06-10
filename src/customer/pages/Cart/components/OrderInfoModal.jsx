@@ -54,6 +54,11 @@ const OrderInfoModal = ({ open, onClose }) => {
 
   const handleLanjut = async () => {
     setErrMsg('');
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setErrMsg('Email wajib diisi (dipakai untuk kirim & pantau pesanan).');
+      return;
+    }
     if (!selectedMethod?.id) {
       setErrMsg('Pilih metode pembayaran dulu di halaman keranjang.');
       return;
@@ -66,9 +71,8 @@ const OrderInfoModal = ({ open, onClose }) => {
     try {
       const order = await createCustomerOrder({
         customer: {
-          nama: (email.trim() || phone.trim() || 'Tamu'),
-          email: email.trim() || null,
-          phone: phone.trim() || null,
+          email: cleanEmail,                 // wajib — kunci identitas
+          phone: phone.trim() || null,       // pelengkap, boleh berubah
         },
         dining_table_code: tableCode,
         tipe_order: 'dine_in',

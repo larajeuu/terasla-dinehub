@@ -77,7 +77,7 @@ const PaymentStatus = () => {
       <SuccessView
         charge={charge}
         onHome={() => navigate('/')}
-        onSummary={() => navigate('/')}
+        onSummary={() => navigate(`/payment/status/${token}/ringkasan`)}
       />
     );
   }
