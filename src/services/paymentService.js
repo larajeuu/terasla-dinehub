@@ -10,13 +10,14 @@ export const chargePayment = async ({ id_pesanan, metode_pembayaran_id }) => {
   return res.data;
 };
 
-export const getPaymentStatus = async (paymentId) => {
-  const res = await api.get(`/payments/${paymentId}/status`);
+// `token` = public_token dari ChargeResponse (bukan id, agar link tak ditebak).
+export const getPaymentStatus = async (token) => {
+  const res = await api.get(`/payments/status/${token}`);
   return res.data;
 };
 
 // Pengganti webhook untuk fase dummy — tandai pembayaran LUNAS.
-export const simulatePaid = async (paymentId) => {
-  const res = await api.post(`/payments/${paymentId}/simulate-paid`);
+export const simulatePaid = async (token) => {
+  const res = await api.post(`/payments/status/${token}/simulate-paid`);
   return res.data;
 };

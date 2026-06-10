@@ -5,7 +5,7 @@ import PendingPayment from './components/PendingPayment';
 import SuccessView from './components/SuccessView';
 
 const PaymentStatus = () => {
-  const { paymentId } = useParams();
+  const { token } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,7 +15,7 @@ const PaymentStatus = () => {
 
   const refresh = useCallback(async () => {
     try {
-      const data = await getPaymentStatus(paymentId);
+      const data = await getPaymentStatus(token);
       setCharge(data);
       setError(null);
     } catch (err) {
@@ -23,7 +23,7 @@ const PaymentStatus = () => {
     } finally {
       setLoading(false);
     }
-  }, [paymentId]);
+  }, [token]);
 
   // Muat awal jika tidak ada state dari navigasi.
   useEffect(() => {
@@ -33,13 +33,13 @@ const PaymentStatus = () => {
   // Auto-poll selama masih pending (di gateway asli, webhook yang men-trigger).
   useEffect(() => {
     if (!charge || charge.status === 'lunas') return undefined;
-    const t = setInterval(refresh, 5000);
+    const t = setInterval(refresh, 3000);
     return () => clearInterval(t);
   }, [charge, refresh]);
 
   const handleSimulate = async () => {
     try {
-      const data = await simulatePaid(paymentId);
+      const data = await simulatePaid(token);
       setCharge(data);
     } catch (err) {
       alert(err?.response?.data?.detail || 'Gagal menandai pembayaran');

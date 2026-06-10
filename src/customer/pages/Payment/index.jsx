@@ -74,7 +74,7 @@ const Payment = () => {
           metode_pembayaran_id: found.id,
         });
         setSelectedMethod({ ...found, groupLabel: GROUP_LABEL });
-        navigate(`/payment/status/${charge.payment_id}`, { replace: true, state: { charge } });
+        navigate(`/payment/status/${charge.payment_token}`, { replace: true, state: { charge } });
       } catch (err) {
         alert(err?.response?.data?.detail || 'Gagal mengganti metode');
       } finally {

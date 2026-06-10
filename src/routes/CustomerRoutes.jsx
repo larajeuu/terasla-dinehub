@@ -12,7 +12,7 @@ const CustomerRoutes = () => (
     <Route path="/restaurant/:id" element={<Restaurant />} />
     <Route path="/cart" element={<Cart />} />
     <Route path="/payment" element={<Payment />} />
-    <Route path="/payment/status/:paymentId" element={<PaymentStatus />} />
+    <Route path="/payment/status/:token" element={<PaymentStatus />} />
     <Route path="/checkout" element={<Checkout />} />
   </Routes>
 );

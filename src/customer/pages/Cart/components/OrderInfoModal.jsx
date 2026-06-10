@@ -81,7 +81,7 @@ const OrderInfoModal = ({ open, onClose }) => {
       });
       clearCart();
       onClose();
-      navigate(`/payment/status/${charge.payment_id}`, { state: { charge } });
+      navigate(`/payment/status/${charge.payment_token}`, { state: { charge } });
     } catch (err) {
       setErrMsg(err?.response?.data?.detail || 'Gagal membuat pesanan. Coba lagi.');
     } finally {

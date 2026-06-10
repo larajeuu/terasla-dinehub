@@ -150,12 +150,16 @@ const PendingPayment = ({ charge, onCheck, onChangeMethod, onSimulate }) => {
         >
           Ganti Metode
         </button>
-        {/* Dummy: pengganti webhook. Hapus saat gateway asli aktif. */}
+        {/* Mode demo: pembayaran otomatis dikonfirmasi ±20 detik. Tombol ini hanya
+            untuk melewati waktu tunggu. Hapus saat gateway asli aktif. */}
+        <p className="text-center text-[11px] text-gray-400 pt-1">
+          Mode demo — otomatis terbayar dalam ±20 detik
+        </p>
         <button
           onClick={onSimulate}
-          className="w-full pt-1 text-[11px] text-gray-400 hover:text-gray-600"
+          className="w-full text-[11px] text-gray-400 hover:text-gray-600 underline"
         >
-          ● Simulasikan pembayaran berhasil (dummy)
+          Bayar sekarang (lewati waktu tunggu)
         </button>
       </div>
     </div>
