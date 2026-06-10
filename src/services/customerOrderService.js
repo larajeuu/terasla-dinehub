@@ -137,3 +137,16 @@ export const getCustomerOrderById = async (id) => {
   const res = await api.get(`/customer-orders/${id}`);
   return mapDetail(res.data);
 };
+
+// Buat order baru. `payload.metode_pembayaran_id` = id dari /payment-methods
+// (mis. selectedMethod.id pada paymentStore).
+//
+// payload: {
+//   customer: { nama, email?, phone? },
+//   dining_table_code?, tipe_order?, metode_pembayaran_id,
+//   catatan?, items: [{ product_id, jumlah, varian? }]
+// }
+export const createCustomerOrder = async (payload) => {
+  const res = await api.post('/customer-orders', payload);
+  return mapDetail(res.data);
+};
