@@ -19,8 +19,16 @@ const HomeBanner = ({ banners = [] }) => {
 
   return (
     <div className="relative mx-4 mt-3 rounded-2xl overflow-hidden" style={{ height: 160 }}>
-      {/* Background */}
-      <div className="absolute inset-0" style={{ background: banner.bg }} />
+      {/* Background: gambar jika ada, jika tidak pakai gradien */}
+      <div
+        className="absolute inset-0"
+        style={
+          banner.image
+            ? { backgroundImage: `url(${banner.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+            : { background: banner.bg }
+        }
+      />
+      {banner.image && <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.35)' }} />}
 
       {/* Decorative circle */}
       <div

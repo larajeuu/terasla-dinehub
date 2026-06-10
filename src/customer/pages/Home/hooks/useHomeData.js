@@ -1,11 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getProducts } from '../../../../services/productService';
 import { getTenants } from '../../../../services/tenantService';
+import { getActiveBanners } from '../../../../services/bannerService';
 import { dummyBanners } from '../../../../data/dummy/banners';
+
+// Banner dari API memakai snake_case; HomeBanner memakai camelCase.
+const mapBanner = (b) => ({
+  id: b.id,
+  badge: b.badge,
+  title: b.title,
+  subtitle: b.subtitle,
+  bg: b.bg,
+  accentColor: b.accent_color,
+  image: b.image_url || null,
+});
 
 const useHomeData = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [allTenants, setAllTenants] = useState([]);
+  const [banners, setBanners] = useState(dummyBanners);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,10 +30,13 @@ const useHomeData = () => {
     try {
       setLoading(true);
       setError(null);
-      const [productsData, tenantsData] = await Promise.all([
+      const [productsData, tenantsData, bannersData] = await Promise.all([
         getProducts(),
         getTenants(),
+        getActiveBanners().catch(() => []),
       ]);
+      // Banner opsional — kalau API kosong/gagal, pakai dummy agar home tetap berisi.
+      setBanners(bannersData?.length ? bannersData.map(mapBanner) : dummyBanners);
       // Response /products tidak menyertakan info merchant, jadi join manual
       // dengan daftar merchant untuk dapat nama & kategori tenant (dipakai
       // tampilan kartu produk dan filter kategori).
@@ -67,7 +83,7 @@ const useHomeData = () => {
   });
 
   return {
-    banners: dummyBanners,
+    banners,
     products,
     tenants,
     loading,
