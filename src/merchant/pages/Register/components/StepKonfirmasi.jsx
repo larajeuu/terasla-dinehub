@@ -5,15 +5,21 @@ import { useNavigate } from 'react-router-dom';
 const StepKonfirmasi = ({ dataAkun, dataToko }) => {
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleDaftar = async () => {
+    setError('');
+
     if (!confirmed) {
       setError('Kamu harus mengonfirmasi data sudah benar');
       return;
     }
+
     try {
-      await register({
+      setLoading(true);
+
+      const payload = {
         nama: dataToko?.namaToko,
         identifier: dataAkun?.email,
         phone: dataAkun?.hp,
@@ -23,10 +29,25 @@ const StepKonfirmasi = ({ dataAkun, dataToko }) => {
         block: dataToko?.noLapak,
         category: dataToko?.kategori,
         deskripsi: dataToko?.deskripsi,
-      })
-      navigate('/merchant/login');
+      }
+    
+
+      console.log('Register Payload: ', payload);
+
+      const response = await register(payload);
+    
+      console.log('Register Response: ', response);
+
+      navigate('/merchant/login', {replace: true});
+
     } catch (error) {
-      setError('Registrasi Akun Gagal. Coba lagi.');
+      console.error('Register Gagal: ', error);
+
+      const message =
+        error?.response?.data?.detail ||
+        'Register Akun Gagal. Silahkan Coba Lagi.';
+
+      setError(message);
     }
   };
 
@@ -117,6 +138,7 @@ const StepKonfirmasi = ({ dataAkun, dataToko }) => {
       {/* Tombol Daftar */}
       <button
         onClick={handleDaftar}
+        disabled={loading}
         className="w-full py-3.5 rounded-2xl font-semibold text-sm text-white transition-all active:scale-95"
         style={{
           background: 'linear-gradient(135deg, #C8961A 0%, #d6a425 100%)',
