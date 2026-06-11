@@ -1,25 +1,76 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginMerchant } from '../../../../services/authService';
+import useAuthStore from '../../../../store/authStore';
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const setAuth = useAuthStore((s) => s.setAuth);
+
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
 
-  const handleMasuk = () => {
+  const handleLogin = async () => {
     const newErrors = {};
-    if (!email.trim()) newErrors.email = 'Email / No. HP wajib diisi';
-    if (!password.trim()) newErrors.password = 'Kata sandi wajib diisi';
+
+    if (!identifier.trim()) {
+      newErrors.identifier = 'Email atau nomor HP wajib diisi';
+    }
+
+    if (!password.trim()) {
+      newErrors.password = 'Kata sandi wajib diisi';
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    // nanti diganti API call
-    navigate('/merchant/dashboard');
-  };
+
+    try {
+      setErrors({});
+
+      const response = await loginMerchant({
+        identifier: identifier.trim(),
+        password,
+      })
+
+      console.log('Login Response', response);
+
+      if (response.role !== 'merchant') {
+        setErrors({
+          general: 'Akun ini tidak memiliki akses merchant',
+        });
+        return;
+      }
+
+      setAuth({
+        user: {
+          id: response.user_id,
+          name: response.nama,
+          identifier: response.email || response.no_hp,
+          role: response.role,
+          merchantId: response.merchant_id,
+          status: response.status,
+        },
+        token: response.access_token,
+      })
+
+      navigate('/merchant/dashboard', {replace: true});
+    } catch (error) {
+      console.error('Login Gagal',error);
+
+      const message =
+        error?.response?.data?.detail ||
+        'Email/No HP atau kata sandi salah. Silakan coba lagi.';
+
+        setErrors({
+          general: message,
+        })
+      }
+    }
+  
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#f5f5f5' }}>
@@ -61,16 +112,16 @@ const LoginForm = () => {
             <input
               type="text"
               placeholder="email@contoh.com atau 08xxxxxxxxxx"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               className="w-full px-4 py-3 rounded-xl text-sm outline-none"
               style={{
-                border: `1px solid ${errors.email ? '#ef4444' : '#e5e7eb'}`,
+                border: `1px solid ${errors.identifier ? '#ef4444' : '#e5e7eb'}`,
                 fontFamily: "'Inter', sans-serif",
                 color: '#374151',
               }}
             />
-            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+            {errors.identifier && <p className="text-xs text-red-500 mt-1">{errors.identifier}</p>}
           </div>
 
           {/* Kata Sandi */}
@@ -122,9 +173,23 @@ const LoginForm = () => {
             </span>
           </div>
 
+          {errors.general && (
+            <div
+              className="text-xs rounded-xl px-3 py-2 mb-3"
+              style= {{
+                background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.25)',
+                color: '#ef4444',
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              {errors.general}
+            </div>
+          )}
+
           {/* Tombol Masuk */}
           <button
-            onClick={handleMasuk}
+            onClick={handleLogin}
             className="w-full py-3.5 rounded-2xl font-semibold text-sm text-white transition-all active:scale-95"
             style={{
               background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)',
