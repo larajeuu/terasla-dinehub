@@ -100,7 +100,7 @@ const InputField = ({ label, icon, type = 'text', value, onChange, placeholder, 
             border: '1.5px solid #d8e8d5',
             background: '#f8fbf7',
             color: '#1a3a14',
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Poppins', sans-serif",
           }}
           onFocus={(e) => {
             e.target.style.borderColor = '#2d5a27';
@@ -226,7 +226,7 @@ const ProfileActions = ({ onSave }) => {
         className="w-full py-3.5 rounded-xl text-white font-bold text-base mt-2 transition-opacity"
         style={{
           background: loading ? '#6fa866' : 'linear-gradient(135deg, #2d5a27 0%, #4a8a3f 100%)',
-          fontFamily: "'Playfair Display', serif",
+          fontFamily: "'Poppins', serif",
           boxShadow: '0 4px 16px rgba(45,90,39,0.25)',
           opacity: loading ? 0.8 : 1,
         }}

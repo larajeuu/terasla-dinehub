@@ -1,12 +1,15 @@
+import { useNavigate } from 'react-router-dom';
 import { formatRupiah } from '../../../../shared/utils/format';
 
 const DashboardHeader = ({ tokoName, lokasi, pendapatan, pesananBaru, diproses }) => {
+  const navigate = useNavigate();
+
   return (
     <div
       className="px-4 pt-5 pb-6"
       style={{ background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)' }}
     >
-      {/* Nama toko + notif */}
+      {/* Nama toko + tombol notif */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-white font-bold text-base" style={{ fontFamily: "'Poppins', sans-serif" }}>
@@ -22,8 +25,11 @@ const DashboardHeader = ({ tokoName, lokasi, pendapatan, pesananBaru, diproses }
             </p>
           </div>
         </div>
+
+        {/* Tombol lonceng → navigate ke Inbox */}
         <button
-          className="w-9 h-9 rounded-full flex items-center justify-center relative"
+          onClick={() => navigate('/merchant/inbox')}
+          className="w-9 h-9 rounded-full flex items-center justify-center relative transition-all active:scale-90"
           style={{ background: 'rgba(255,255,255,0.12)' }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">

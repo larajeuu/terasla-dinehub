@@ -8,6 +8,7 @@ import Menu from '../merchant/pages/Menu';
 import Orders from '../merchant/pages/Orders';
 import Profile from '../merchant/pages/Profile';
 import Register from '../merchant/pages/Register';
+import Settings from '../merchant/pages/Settings';
 
 const MerchantRoutes = () => (
   <Routes>
@@ -20,6 +21,7 @@ const MerchantRoutes = () => (
     <Route path="/orders" element={<Orders />} />
     <Route path="/profile" element={<Profile />} />
     <Route path="/register" element={<Register />} />
+    <Route path="/settings" element={<Settings />} />
   </Routes>
 );
 
