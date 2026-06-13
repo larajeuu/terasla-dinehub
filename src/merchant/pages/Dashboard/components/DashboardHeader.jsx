@@ -1,6 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { formatRupiah } from '../../../../shared/utils/format';
 
+const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+const formatDateNow = () => {
+  const now = new Date();
+  const day = DAYS[now.getDay()];
+  const d = String(now.getDate()).padStart(2, '0');
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const y = now.getFullYear();
+  const h = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  return `${day}, ${d}-${m}-${y} · ${h}:${min}`;
+};
+
 const DashboardHeader = ({ tokoName, lokasi, pendapatan, pesananBaru, diproses }) => {
   const navigate = useNavigate();
 
@@ -51,7 +64,7 @@ const DashboardHeader = ({ tokoName, lokasi, pendapatan, pesananBaru, diproses }
         PESANAN MASUK
       </p>
       <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif" }}>
-        Day, dd-mm-yyyy
+        {formatDateNow()}
       </p>
 
       {/* Stats */}

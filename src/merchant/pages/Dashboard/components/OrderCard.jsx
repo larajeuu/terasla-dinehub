@@ -8,7 +8,7 @@ const statusConfig = {
 };
 
 const OrderCard = ({ order, onClick }) => {
-  const status = statusConfig[order.status];
+  const status = statusConfig[order.status] || { bg: '#f3f4f6', color: '#6b7280', label: order.status };
 
   return (
     <div
@@ -34,7 +34,8 @@ const OrderCard = ({ order, onClick }) => {
       </div>
 
       <p className="text-xs text-gray-500" style={{ fontFamily: "'Inter', sans-serif" }}>
-        <span className="font-medium text-gray-700">Nama</span> · {order.items.join(', ')}
+        <span className="font-medium text-gray-700">{order.customerName || 'Pelanggan'}</span>
+        {order.items?.length > 0 && ` · ${order.items.join(', ')}`}
       </p>
 
       <div className="flex items-center justify-between pt-1" style={{ borderTop: '1px solid #f3f4f6' }}>

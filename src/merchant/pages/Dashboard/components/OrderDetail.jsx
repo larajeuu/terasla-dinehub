@@ -8,7 +8,7 @@ const statusConfig = {
 };
 
 const OrderDetail = ({ order, onClose, onUpdateStatus }) => {
-  const status = statusConfig[order.status];
+  const status = statusConfig[order.status] || { bg: '#f3f4f6', color: '#6b7280' };
 
   return (
     <>
@@ -48,7 +48,20 @@ const OrderDetail = ({ order, onClose, onUpdateStatus }) => {
             </span>
           </div>
 
-          {/* Info customer */}
+          {/* Nama pelanggan */}
+          {order.customerName && (
+            <div className="flex items-center gap-2 mb-4 px-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" stroke="#9ca3af" strokeWidth="1.8"/>
+                <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+              <p className="text-sm text-gray-600" style={{ fontFamily: "'Inter', sans-serif" }}>
+                {order.customerName}
+              </p>
+            </div>
+          )}
+
+          {/* Detail Pesanan */}
           <div
             className="rounded-2xl p-4 mb-4"
             style={{ background: '#f9fafb', border: '1px solid #f3f4f6' }}
@@ -56,8 +69,12 @@ const OrderDetail = ({ order, onClose, onUpdateStatus }) => {
             <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide" style={{ fontFamily: "'Inter', sans-serif" }}>
               Detail Pesanan
             </p>
-            {order.items.map((item, i) => (
-              <div key={i} className="flex justify-between items-center py-1.5" style={{ borderBottom: i < order.items.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+            {(order.items || []).map((item, i) => (
+              <div
+                key={i}
+                className="flex justify-between items-center py-1.5"
+                style={{ borderBottom: i < order.items.length - 1 ? '1px solid #f3f4f6' : 'none' }}
+              >
                 <p className="text-sm text-gray-700" style={{ fontFamily: "'Inter', sans-serif" }}>{item}</p>
               </div>
             ))}

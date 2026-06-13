@@ -4,17 +4,35 @@ import { dummyAdminOrders, getItemAmount } from '../data/dummy/adminOrders';
 const USE_DUMMY = import.meta.env.VITE_USE_DUMMY_DATA === 'true';
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-// Status merchant order (backend) → kosakata badge admin.
+// Backend status → label UI (Indonesia, kapital)
 const ITEM_STATUS = {
-  baru: 'new',
-  terbuka: 'open',
-  diproses: 'process',
-  selesai: 'done',
-  dibatalkan: 'cancelled',
+  baru: 'Baru',
+  terbuka: 'Baru',
+  diproses: 'Diproses',
+  selesai: 'Selesai',
+  dibatalkan: 'Dibatalkan',
 };
-const mapStatus = (s) => ITEM_STATUS[s] || s;
+const mapStatus = (s) => ITEM_STATUS[s?.toLowerCase()] || s;
 
-// Turunkan riwayat order per merchant dari dummy customer orders.
+// Label UI → backend status
+const STATUS_TO_BACKEND = {
+  Baru: 'baru',
+  Diproses: 'diproses',
+  Selesai: 'selesai',
+  Dibatalkan: 'dibatalkan',
+};
+
+const parseItems = (preview) => {
+  if (Array.isArray(preview)) return preview;
+  if (typeof preview === 'string') return preview.split(', ').filter(Boolean);
+  return ['-'];
+};
+
+const parseTime = (dateStr) => {
+  if (!dateStr) return '-';
+  return new Date(dateStr).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+};
+
 const dummyMerchantOrders = (merchantId) => {
   const rows = [];
   dummyAdminOrders.forEach((o) => {
@@ -22,13 +40,17 @@ const dummyMerchantOrders = (merchantId) => {
       .filter((it) => it.tenantId === merchantId)
       .forEach((it) => {
         rows.push({
-          id: `${o.orderId}-${it.tenantId}`,
+          id: o.orderId,
+          dbId: `${o.orderId}-${it.tenantId}`,
           orderCode: o.orderId,
-          status: it.status,
+          status: mapStatus(it.status),
           total: getItemAmount(it),
-          customer: o.customerId,
+          customerName: o.customerId,
           table: o.tableCode,
-          preview: it.products.map((p) => `${p.qty}x ${p.name}`).join(', '),
+          time: '12:00',
+          type: 'Dine In',
+          items: it.products.map((p) => `${p.qty}x ${p.name}`),
+          payment: 'QRIS',
           date: o.date,
         });
       });
@@ -43,13 +65,23 @@ export const getMerchantOrders = async (merchantId) => {
   }
   const res = await api.get('/merchant-orders', { params: { merchant_id: merchantId } });
   return res.data.map((o) => ({
-    id: o.id,
+    id: o.order_code || String(o.id),
+    dbId: o.id,
     orderCode: o.order_code,
     status: mapStatus(o.status),
     total: o.total_harga,
-    customer: o.pelanggan_nama,
+    customerName: o.pelanggan_nama,
     table: o.no_meja,
-    preview: o.preview_items,
+    time: parseTime(o.created_at),
+    type: 'Dine In',
+    items: parseItems(o.preview_items),
+    payment: o.metode_pembayaran || 'QRIS',
     date: o.created_at,
   }));
+};
+
+export const updateMerchantOrderStatus = async (dbId, uiStatus) => {
+  const backendStatus = STATUS_TO_BACKEND[uiStatus] || uiStatus.toLowerCase();
+  const res = await api.put(`/merchant-orders/${dbId}`, { status: backendStatus });
+  return res.data;
 };
