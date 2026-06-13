@@ -4,6 +4,9 @@ import { dummyAdminOrders, getItemAmount } from '../data/dummy/adminOrders';
 const USE_DUMMY = import.meta.env.VITE_USE_DUMMY_DATA === 'true';
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
+const PAYMENT_LABELS = { qris: 'QRIS', tunai: 'Tunai' };
+const paymentLabel = (m) => PAYMENT_LABELS[m] || (m ? String(m).toUpperCase() : '-');
+
 // Backend status → label UI (Indonesia, kapital)
 const ITEM_STATUS = {
   baru: 'Baru',
@@ -75,7 +78,7 @@ export const getMerchantOrders = async (merchantId) => {
     time: parseTime(o.created_at),
     type: 'Dine In',
     items: parseItems(o.preview_items),
-    payment: o.metode_pembayaran || 'QRIS',
+    payment: paymentLabel(o.metode_pembayaran),
     date: o.created_at,
   }));
 };
