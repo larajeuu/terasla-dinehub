@@ -42,9 +42,13 @@ const OrderCard = ({ order, onClick }) => {
         <p className="font-bold text-sm" style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}>
           {formatRupiah(order.total)}
         </p>
-        <p className="text-xs text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>
-          {order.payment} ›
-        </p>
+        {order.payment ? (
+          <p className="text-xs text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>
+            {order.payment} ›
+          </p>
+        ) : (
+          <p className="text-xs text-gray-400" style={{ fontFamily: "'Inter', sans-serif" }}>›</p>
+        )}
       </div>
     </div>
   );
