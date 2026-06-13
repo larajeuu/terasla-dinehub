@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import useHomeData from './hooks/useHomeData';
 import useQrLanding from './hooks/useQrLanding';
 import HomeHeader from './components/HomeHeader';
@@ -7,9 +8,23 @@ import ProductSection from './components/ProductSection';
 import TenantSection from './components/TenantSection';
 import SearchBar from '../../components/SearchBar';
 import CartBar from '../../components/CartBar';
+import ScanQrModal from '../Cart/components/ScanQrModal';
+
+// QR meja bermasalah → tampilkan banner & buka tutorial scan.
+const isBadQr = (s) => s === 'invalid' || s === 'expired';
 
 const Home = () => {
   const { status: qrStatus } = useQrLanding();
+  const [scanOpen, setScanOpen] = useState(false);
+  const autoOpenedRef = useRef(false);
+
+  // Auto-buka tutorial scan sekali saat QR tidak valid/kadaluarsa.
+  useEffect(() => {
+    if (isBadQr(qrStatus) && !autoOpenedRef.current) {
+      autoOpenedRef.current = true;
+      setScanOpen(true);
+    }
+  }, [qrStatus]);
   const {
     banners,
     products,
@@ -36,15 +51,22 @@ const Home = () => {
           <div
             className="rounded-lg px-3 py-2.5 text-[12px] leading-snug"
             style={{
-              background: qrStatus === 'invalid' ? '#fef2f2' : '#fff7ed',
-              color: qrStatus === 'invalid' ? '#b91c1c' : '#9a3412',
-              border: `1px solid ${qrStatus === 'invalid' ? '#fecaca' : '#fed7aa'}`,
+              background: isBadQr(qrStatus) ? '#fef2f2' : '#fff7ed',
+              color: isBadQr(qrStatus) ? '#b91c1c' : '#9a3412',
+              border: `1px solid ${isBadQr(qrStatus) ? '#fecaca' : '#fed7aa'}`,
               fontFamily: "'Inter', sans-serif",
             }}
           >
-            {qrStatus === 'invalid'
-              ? 'QR meja tidak valid. Silakan scan ulang QR di meja Anda.'
+            {isBadQr(qrStatus)
+              ? 'Kode QR meja tidak valid atau sudah kadaluarsa. Silakan hubungi admin, atau scan ulang QR yang tertempel di meja.'
               : 'Belum ada meja. Silakan scan QR di meja untuk mulai memesan.'}
+            <button
+              onClick={() => setScanOpen(true)}
+              className="mt-1.5 block font-semibold underline"
+              style={{ color: isBadQr(qrStatus) ? '#b91c1c' : '#9a3412' }}
+            >
+              {isBadQr(qrStatus) ? 'Lihat cara scan / Scan ulang' : 'Cara scan QR'}
+            </button>
           </div>
         </div>
       )}
@@ -78,6 +100,8 @@ const Home = () => {
       )}
 
       <CartBar />
+
+      <ScanQrModal open={scanOpen} onClose={() => setScanOpen(false)} />
     </div>
   );
 };

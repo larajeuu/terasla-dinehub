@@ -21,22 +21,33 @@ const useQrLanding = () => {
 
   const [status, setStatus] = useState(() => {
     if (searchParams.get('t')) return 'pending';
+    if (searchParams.get('scan') === 'expired') return 'expired';
     return code && label ? 'ok' : 'no-token';
   });
 
   useEffect(() => {
+    // Kode QR tidak valid / kadaluarsa (BE redirect dengan ?scan=expired).
+    if (searchParams.get('scan') === 'expired') {
+      setStatus('expired');
+      const next = new URLSearchParams(searchParams);
+      next.delete('scan');
+      setSearchParams(next, { replace: true });
+      return;
+    }
+
     const token = searchParams.get('t');
     if (!token) return;
 
+    const next = new URLSearchParams(searchParams);
+    next.delete('t');
     try {
       const { code: c, label: l } = decodeToken(token);
       setTable({ code: c, label: l });
       setStatus('ok');
-      const next = new URLSearchParams(searchParams);
-      next.delete('t');
-      setSearchParams(next, { replace: true });
     } catch {
       setStatus('invalid');
+    } finally {
+      setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams, setTable]);
 
