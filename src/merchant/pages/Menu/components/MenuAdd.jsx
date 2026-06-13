@@ -6,17 +6,40 @@ const MenuAdd = ({ onBack, onAdd }) => {
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState(0);
   const [available, setAvailable] = useState(true);
-  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const handleFoto = (e) => {
     const file = e.target.files[0];
-    if (file) setImage(URL.createObjectURL(file));
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!name.trim() || !price) return;
-    onAdd({ name, description, price: Number(price), stock: Number(stock), available, image });
+    setSaving(true);
+    setError('');
+    try {
+      await onAdd({
+        name,
+        description,
+        price: Number(price),
+        stock: Number(stock),
+        available,
+        imageFile,
+      });
+    } catch {
+      setError('Gagal menambah menu. Coba lagi.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const isDisabled = !name.trim() || !price || saving;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#f5f5f5' }}>
@@ -50,8 +73,8 @@ const MenuAdd = ({ onBack, onAdd }) => {
               className="w-28 h-28 rounded-2xl overflow-hidden mb-3 flex items-center justify-center"
               style={{ background: '#f3f4f6' }}
             >
-              {image ? (
-                <img src={image} alt={name} className="w-full h-full object-cover" />
+              {imagePreview ? (
+                <img src={imagePreview} alt={name} className="w-full h-full object-cover" />
               ) : (
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
                   <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#d1d5db" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -186,19 +209,24 @@ const MenuAdd = ({ onBack, onAdd }) => {
 
       {/* Tombol tambah */}
       <div className="fixed bottom-0 left-0 right-0 px-4 py-4 bg-white" style={{ boxShadow: '0 -1px 12px rgba(0,0,0,0.08)' }}>
+        {error ? (
+          <p className="text-xs text-red-500 text-center mb-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+            {error}
+          </p>
+        ) : null}
         <button
           onClick={handleAdd}
-          disabled={!name.trim() || !price}
+          disabled={isDisabled}
           className="w-full py-3.5 rounded-2xl font-semibold text-sm text-white transition-all active:scale-95"
           style={{
-            background: !name.trim() || !price
+            background: isDisabled
               ? '#d1d5db'
               : 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)',
             fontFamily: "'Poppins', sans-serif",
-            boxShadow: !name.trim() || !price ? 'none' : '0 4px 16px rgba(29,58,39,0.3)',
+            boxShadow: isDisabled ? 'none' : '0 4px 16px rgba(29,58,39,0.3)',
           }}
         >
-          Tambah Menu
+          {saving ? 'Menambahkan...' : 'Tambah Menu'}
         </button>
       </div>
     </div>
