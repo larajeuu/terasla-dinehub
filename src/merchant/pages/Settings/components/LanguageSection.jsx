@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 const LANGUAGES = [
-  { code: "id", label: "Indonesia", flag: "🇮🇩" },
-  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "id", label: "Indonesia", flagSrc: "https://flagcdn.com/w40/id.png" },
+  { code: "en", label: "English",   flagSrc: "https://flagcdn.com/w40/us.png" },
 ];
 
 const getSavedLang = () => localStorage.getItem("dineHub_lang") || "id";
@@ -32,7 +32,7 @@ export default function LanguageSection() {
       </p>
 
       <div style={{ display: 'flex', gap: 10 }}>
-        {LANGUAGES.map(({ code, label, flag }) => {
+        {LANGUAGES.map(({ code, label, flagSrc }) => {
           const isActive = activeLang === code;
           return (
             <button
@@ -55,7 +55,7 @@ export default function LanguageSection() {
                 transition: 'all 0.15s ease',
               }}
             >
-              <span style={{ fontSize: 20, lineHeight: 1 }}>{flag}</span>
+              <img src={flagSrc} alt={label} style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2 }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: isActive ? '#1D3A27' : '#374151' }}>
                 {label}
               </span>

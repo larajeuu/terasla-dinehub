@@ -49,7 +49,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user?.merchantId) return;
     getMerchantById(user.merchantId)
-      .then((m) => setMerchantBlock(m.block || ''))
+      .then((m) => setMerchantBlock([m.block, m.category].filter(Boolean).join(' · ')))
       .catch(() => {});
   }, [user?.merchantId]);
 

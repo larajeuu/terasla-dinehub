@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuthStore from "../../../../store/authStore";
 import ConfirmLogoutModal from "./ConfirmLogoutModal";
 
 export default function LogoutSection() {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
 
   const handleLogoutConfirm = () => {
-    localStorage.removeItem("token");
-    // TODO: tambahkan key lain jika ada, misal: "dineHub_user", "dineHub_merchantId"
-    navigate("/login", { replace: true });
+    logout();
+    navigate("/merchant/login", { replace: true });
   };
 
   return (

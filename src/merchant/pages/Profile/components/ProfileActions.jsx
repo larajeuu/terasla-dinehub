@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import useAuthStore from '../../../../store/authStore';
+import { getMerchantById, updateMerchantProfile } from '../../../../services/merchantService';
 
 const UserIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -131,36 +133,59 @@ const InputField = ({ label, icon, type = 'text', value, onChange, placeholder, 
 };
 
 const ProfileActions = ({ onSave }) => {
+  const user = useAuthStore((s) => s.user);
   const [form, setForm] = useState({
-    nama: 'Thai Tea Bossku',
-    lokasi: 'Blok E- Teras LA, Depok',
-    email: 'tralalataralii@yahoo.com',
+    nama: '',
+    lokasi: '',
+    email: '',
     password: '',
     konfirmasi: '',
   });
 
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!user?.merchantId) return;
+    getMerchantById(user.merchantId)
+      .then((data) => {
+        setForm((prev) => ({
+          ...prev,
+          nama: data.name || '',
+          lokasi: data.block || '',
+          email: data.email || '',
+        }));
+      })
+      .catch(() => {});
+  }, [user?.merchantId]);
 
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   const handleSave = async () => {
+    if (form.password && form.password !== form.konfirmasi) {
+      setError('Password dan konfirmasi tidak cocok.');
+      return;
+    }
+    setError(null);
     setLoading(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 900));
-
-    setLoading(false);
-    setSaved(true);
-
-    setTimeout(() => setSaved(false), 2500);
-
-    if (onSave) {
-      onSave(form);
+    try {
+      await updateMerchantProfile(user.merchantId, {
+        nama: form.nama,
+        block: form.lokasi,
+        email: form.email,
+        password: form.password || undefined,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+      setForm((prev) => ({ ...prev, password: '', konfirmasi: '' }));
+      if (onSave) onSave(form);
+    } catch {
+      setError('Gagal menyimpan perubahan. Coba lagi.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -233,6 +258,15 @@ const ProfileActions = ({ onSave }) => {
       >
         {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
       </button>
+
+      {error && (
+        <div
+          className="mt-3 text-center text-sm font-semibold rounded-xl py-2.5"
+          style={{ background: '#fef2f2', color: '#b91c1c' }}
+        >
+          {error}
+        </div>
+      )}
 
       {saved && (
         <div

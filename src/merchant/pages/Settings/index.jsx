@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LanguageSection from "./components/LanguageSection";
 import LogoutSection from "./components/LogoutSection";
+import useAuthStore from "../../../store/authStore";
+import { getMerchantById } from '../../../services/merchantService';
+import BottomNavbar from "../../components/BottomNavbar";
 
 const styles = {
   page: {
@@ -45,7 +48,26 @@ const styles = {
     gap: 12,
     overflowY: 'auto',
   },
-  // Tombol "Edit Profil" — row item seperti menu setting pada umumnya
+  profileCard: {
+    background: 'white',
+    borderRadius: 20,
+    padding: '16px 20px',
+    boxShadow: '0 1px 6px rgba(0,0,0,0.05)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profileCardAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: '50%',
+    background: '#e8f5e9',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 22,
+    flexShrink: 0,
+  },
   profileRow: {
     background: 'white',
     borderRadius: 20,
@@ -87,6 +109,17 @@ const styles = {
 export default function Settings() {
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
+  const user = useAuthStore((s) => s.user);
+  const [merchant, setMerchant] = useState(null);
+  const [loadingMerchant, setLoadingMerchant] = useState(true);
+
+  useEffect(() => {
+    if (!user?.merchantId) return;
+    getMerchantById(user.merchantId)
+      .then((data) => setMerchant(data))
+      .catch(() => {})
+      .finally(() => setLoadingMerchant(false));
+  }, [user?.merchantId]);
 
   useEffect(() => {
     if (!toast) return;
@@ -98,23 +131,30 @@ export default function Settings() {
     <div style={styles.page}>
       {/* Header */}
       <header style={styles.header}>
-        <button
-          style={styles.btnBack}
-          type="button"
-          onClick={() => navigate(-1)}
-          aria-label="Kembali"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
         <h1 style={styles.headerTitle}>Pengaturan</h1>
       </header>
 
       {/* Konten */}
       <main style={styles.content}>
 
-        {/* Tombol Edit Profil → navigate ke /merchant/profile */}
+        {/* Ringkasan Profil dari API */}
+        {loadingMerchant ? (
+          <div style={{ textAlign: 'center', padding: '12px 0', fontSize: 13, color: '#9ca3af' }}>
+            Memuat profil...
+          </div>
+        ) : merchant ? (
+          <div style={styles.profileCard}>
+            <div style={styles.profileCardAvatar}>🏪</div>
+            <div>
+              <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: '#1f2937', margin: '0 0 2px' }}>
+                {merchant.name || user?.name || '-'}
+              </p>
+              <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>
+                {[merchant.block, merchant.category].filter(Boolean).join(' · ') || 'Informasi toko'}
+              </p>
+            </div>
+          </div>
+        ) : null}
         <button
           style={styles.profileRow}
           onClick={() => navigate('/merchant/profile')}
@@ -147,6 +187,8 @@ export default function Settings() {
           {toast.message}
         </div>
       )}
+
+      <BottomNavbar />
     </div>
   );
 }
