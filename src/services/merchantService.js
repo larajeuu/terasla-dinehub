@@ -67,3 +67,13 @@ export const updateMerchantStatus = async (id, status) => {
   const response = await api.put(`/merchants/${id}`, { status });
   return mapMerchant(response.data);
 };
+
+// Toggle buka/tutup toko oleh merchant sendiri
+export const updateStoreOpenStatus = async (id, isOpen) => {
+  if (USE_DUMMY) {
+    await delay(200);
+    return { id, is_open: isOpen };
+  }
+  const response = await api.put(`/merchants/${id}`, { is_open: isOpen });
+  return response.data;
+};

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import KeuanganHeader from './components/KeuanganHeader';
+import StoreStatusCard from './components/StoreStatusCard';
 import SalesSummary from './components/SalesSummary';
 import SalesChart from './components/SalesChart';
 import TransactionList from './components/TransactionList';
@@ -24,11 +26,19 @@ const weeklyData = [
 ];
 
 const KontrolPage = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
   return (
     <div className="min-h-screen flex flex-col pb-20" style={{ background: '#f5f5f5' }}>
       <KeuanganHeader saldo={1247500} />
 
       <div className="flex-1 px-4 pt-4 flex flex-col gap-4">
+        <StoreStatusCard
+          tokoName="Gorengan Bu Ami"
+          lokasi="Blok A3 · Makanan"
+          isOpen={isOpen}
+          onToggle={() => setIsOpen((prev) => !prev)}
+        />
         <SalesSummary
           totalOrder={24}
           totalPendapatan={1247500}
