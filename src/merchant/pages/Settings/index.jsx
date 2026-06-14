@@ -14,9 +14,9 @@ const styles = {
   header: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '20px 16px 16px',
-    background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)',
+    gap: 12,
+    padding: '16px',
+    background: '#1D3A27',
   },
   btnBack: {
     width: 36,
@@ -24,12 +24,11 @@ const styles = {
     borderRadius: '50%',
     background: 'rgba(255,255,255,0.12)',
     border: 'none',
-    color: 'white',
-    fontSize: 18,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
+    flexShrink: 0,
   },
   headerTitle: {
     fontFamily: "'Poppins', sans-serif",
@@ -105,10 +104,11 @@ export default function Settings() {
           onClick={() => navigate(-1)}
           aria-label="Kembali"
         >
-          ←
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
         <h1 style={styles.headerTitle}>Pengaturan</h1>
-        <div style={{ width: 40 }} />
       </header>
 
       {/* Konten */}
