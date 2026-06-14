@@ -56,7 +56,7 @@ const MenuPage = () => {
     // Optimistic update
     setMenus((prev) => prev.map((m) => (m.id === id ? { ...m, available: newAvailable } : m)));
     try {
-      await toggleMenuAvailability(id, newAvailable);
+      await toggleMenuAvailability(id, newAvailable, menu);
     } catch (err) {
       console.error('Gagal update ketersediaan:', err);
       // Rollback

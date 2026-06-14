@@ -107,11 +107,18 @@ export const updateMenu = async (id, data) => {
   return mapProduct(res.data);
 };
 
-export const toggleMenuAvailability = async (id, available) => {
+// PUT karena backend tidak support PATCH pada /products/{id}
+export const toggleMenuAvailability = async (id, available, menuData) => {
   if (USE_DUMMY) {
     await delay(200);
-    return { id, available };
+    return { ...menuData, available };
   }
-  const res = await api.patch(`/products/${id}`, { is_available: available });
+  const res = await api.put(`/products/${id}`, {
+    nama: menuData.name,
+    deskripsi: menuData.description || '',
+    harga: menuData.price,
+    stok: menuData.stock,
+    is_available: available,
+  });
   return mapProduct(res.data);
 };
