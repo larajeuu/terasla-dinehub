@@ -7,7 +7,7 @@ const StoreStatusCard = ({ tokoName, lokasi, isOpen, onToggle }) => {
       <div className="flex items-center justify-between gap-3">
         {/* Info toko + status badge */}
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-gray-800 truncate" style={{ fontFamily: "'Poppins', sans-serif" }}>
+          <p className="font-bold text-base text-gray-800 truncate" style={{ fontFamily: "'Poppins', sans-serif" }}>
             {tokoName}
           </p>
           {lokasi ? (

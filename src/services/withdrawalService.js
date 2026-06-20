@@ -72,3 +72,63 @@ export const rejectWithdrawal = async (id, note) => {
   });
   return mapWithdrawal(response.data);
 };
+
+// ── Merchant ─────────────────────────────────────────────────────────────────
+
+const DUMMY_BALANCE = 5_200_000; // Sementara: hapus setelah endpoint /tenant-balance/me live
+
+export const getMerchantBalance = async () => {
+  if (USE_DUMMY) {
+    await delay(200);
+    return DUMMY_BALANCE;
+  }
+  try {
+    const response = await api.get('/tenant-balance/me');
+    const d = response.data;
+    return d?.balance ?? d?.saldo ?? d?.total_balance ?? 0;
+  } catch {
+    return DUMMY_BALANCE;
+  }
+};
+
+export const getMerchantWithdrawals = async () => {
+  try {
+    const response = await api.get('/withdrawals');
+    return response.data.map(mapWithdrawal);
+  } catch {
+    return [];
+  }
+};
+
+export const createWithdrawal = async ({ amount, bank, account_number, account_name }) => {
+  const response = await api.post('/withdrawals', { amount, bank, account_number, account_name });
+  return response.data;
+};
+
+// ── localStorage bank accounts (per merchantId) ───────────────────────────────
+
+const bankKey = (merchantId) => `bank_accounts_${merchantId}`;
+
+export const getBankAccounts = (merchantId) => {
+  try { return JSON.parse(localStorage.getItem(bankKey(merchantId))) || []; }
+  catch { return []; }
+};
+
+export const saveBankAccount = (merchantId, account) => {
+  const accounts = getBankAccounts(merchantId);
+  const exists = accounts.some(
+    (a) => a.bank === account.bank && a.account_number === account.account_number
+  );
+  if (!exists) {
+    accounts.push(account);
+    localStorage.setItem(bankKey(merchantId), JSON.stringify(accounts));
+  }
+  return getBankAccounts(merchantId);
+};
+
+export const deleteBankAccount = (merchantId, index) => {
+  const accounts = getBankAccounts(merchantId);
+  accounts.splice(index, 1);
+  localStorage.setItem(bankKey(merchantId), JSON.stringify(accounts));
+  return accounts;
+};

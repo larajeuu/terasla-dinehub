@@ -22,7 +22,7 @@ const SalesSummary = ({ totalOrder, totalPendapatan, produkTerlaris }) => {
               <rect x="9" y="3" width="6" height="4" rx="1" stroke="#2563eb" strokeWidth="1.8"/>
             </svg>
           </div>
-          <p className="text-2xl font-bold text-gray-800" style={{ fontFamily: "'Poppins', sans-serif" }}>
+          <p className="text-xl font-bold text-gray-800 leading-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
             {totalOrder}
           </p>
           <p className="text-xs text-gray-400 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>

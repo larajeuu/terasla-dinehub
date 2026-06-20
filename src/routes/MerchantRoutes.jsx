@@ -4,6 +4,8 @@ import LoginForm from '../merchant/pages/Login/components/LoginForm';
 import Dashboard from '../merchant/pages/Dashboard';
 import Inbox from '../merchant/pages/Inbox';
 import Kontrol from '../merchant/pages/Kontrol';
+import PencairanDana from '../merchant/pages/Kontrol/Pencairan';
+import RiwayatKeuangan from '../merchant/pages/Kontrol/Riwayat';
 import Menu from '../merchant/pages/Menu';
 import Orders from '../merchant/pages/Orders';
 import Profile from '../merchant/pages/Profile';
@@ -17,6 +19,8 @@ const MerchantRoutes = () => (
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/inbox" element={<Inbox />} />
     <Route path="/kontrol" element={<Kontrol />} />
+    <Route path="/kontrol/pencairan" element={<PencairanDana />} />
+    <Route path="/kontrol/riwayat" element={<RiwayatKeuangan />} />
     <Route path="/menu" element={<Menu />} />
     <Route path="/orders" element={<Orders />} />
     <Route path="/profile" element={<Profile />} />

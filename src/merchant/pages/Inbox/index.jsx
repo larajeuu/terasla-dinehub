@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import useAuthStore from '../../../store/authStore';
 import { getMerchantById } from '../../../services/merchantService';
 import { fetchAllNotifications } from '../../../services/notificationService';
@@ -29,26 +29,25 @@ const InboxPage = () => {
   const [loading, setLoading] = useState(true);
   const [merchantInfo, setMerchantInfo] = useState({ block: '', category: '' });
   const [activeTab, setActiveTab] = useState('Semua');
-  const [activePanel, setActivePanel] = useState(null);
   const [selectedNotif, setSelectedNotif] = useState(null);
 
-  const fetchNotifications = useCallback(async () => {
-    if (!user?.merchantId) return;
-    try {
-      const readIds = getReadIds();
-      const data = await fetchAllNotifications(user.merchantId);
-      // Tandai notifikasi yang sudah pernah dibaca sebelumnya
-      setNotifikasi(data.map((n) => ({ ...n, read: readIds.has(String(n.id)) })));
-    } catch (err) {
-      console.error('Gagal memuat notifikasi:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.merchantId]);
-
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    if (!user?.merchantId) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const readIds = getReadIds();
+        const data = await fetchAllNotifications(user.merchantId);
+        if (!cancelled) setNotifikasi(data.map((n) => ({ ...n, read: readIds.has(String(n.id)) })));
+      } catch (err) {
+        console.error('Gagal memuat notifikasi:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [user?.merchantId]);
 
   useEffect(() => {
     if (!user?.merchantId) return;
@@ -67,22 +66,7 @@ const InboxPage = () => {
     setSelectedNotif(notif);
   };
 
-  const handleClickPengumuman = () => {
-    const next = activePanel === 'Pengumuman' ? null : 'Pengumuman';
-    setActivePanel(next);
-    setActiveTab(next ?? 'Semua');
-  };
-
-  const handleClickPengingat = () => {
-    const next = activePanel === 'Pengingat' ? null : 'Pengingat';
-    setActivePanel(next);
-    setActiveTab(next ?? 'Semua');
-  };
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setActivePanel(null);
-  };
+  const handleTabChange = (tab) => setActiveTab(tab);
 
   const filteredNotifikasi = notifikasi.filter((n) =>
     activeTab === 'Semua' ? true : n.type === activeTab
@@ -109,11 +93,6 @@ const InboxPage = () => {
         tokoName={tokoName}
         lokasi={lokasi}
         pesanBelumDibaca={notifikasi.filter((n) => !n.read).length}
-        countPengumuman={count('Pengumuman', true)}
-        countPengingat={count('Pengingat', true)}
-        onClickPengumuman={handleClickPengumuman}
-        onClickPengingat={handleClickPengingat}
-        activePanel={activePanel}
       />
 
       <div className="flex-1 px-4 pt-4 flex flex-col gap-3">
@@ -121,9 +100,12 @@ const InboxPage = () => {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           counts={{
-            Pesanan:   count('Pesanan',   true),
-            Pencairan: count('Pencairan', true),
-            Ulasan:    count('Ulasan',    true),
+            Penting:    count('Penting',    true),
+            Pesanan:    count('Pesanan',    true),
+            Pencairan:  count('Pencairan',  true),
+            Ulasan:     count('Ulasan',     true),
+            Pengumuman: count('Pengumuman', true),
+            Pengingat:  count('Pengingat',  true),
           }}
         />
 

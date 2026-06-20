@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { formatRupiah } from '../../../../shared/utils/format';
 
 const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -15,14 +14,13 @@ const formatDateNow = () => {
 };
 
 const DashboardHeader = ({ tokoName, lokasi, pendapatan, pesananBaru, diproses }) => {
-  const navigate = useNavigate();
 
   return (
     <div
       className="px-4 pt-5 pb-6"
       style={{ background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)' }}
     >
-      {/* Nama toko + tombol notif */}
+      {/* Nama toko */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-white font-bold text-base" style={{ fontFamily: "'Poppins', sans-serif" }}>
@@ -39,24 +37,6 @@ const DashboardHeader = ({ tokoName, lokasi, pendapatan, pesananBaru, diproses }
           </div>
         </div>
 
-        {/* Tombol lonceng → navigate ke Inbox */}
-        <button
-          onClick={() => navigate('/merchant/inbox')}
-          className="w-9 h-9 rounded-full flex items-center justify-center relative transition-all active:scale-90"
-          style={{ background: 'rgba(255,255,255,0.12)' }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          {pesananBaru > 0 && (
-            <span
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center"
-              style={{ background: '#ef4444', fontSize: '9px', fontFamily: "'Inter', sans-serif" }}
-            >
-              {pesananBaru}
-            </span>
-          )}
-        </button>
       </div>
 
       {/* Title */}

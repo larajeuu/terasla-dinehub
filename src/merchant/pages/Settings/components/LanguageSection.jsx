@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 const LANGUAGES = [
-  { code: "id", label: "Indonesia", flagSrc: "https://flagcdn.com/w40/id.png" },
-  { code: "en", label: "English",   flagSrc: "https://flagcdn.com/w40/us.png" },
+  { code: "id", label: "Indonesia", sub: "Bahasa Indonesia", flagSrc: "https://flagcdn.com/w40/id.png" },
+  { code: "en", label: "English",   sub: "English (US)",     flagSrc: "https://flagcdn.com/w40/us.png" },
 ];
 
 const getSavedLang = () => localStorage.getItem("dineHub_lang") || "id";
@@ -20,54 +20,70 @@ export default function LanguageSection() {
       style={{
         background: 'white',
         borderRadius: 20,
-        padding: 20,
+        overflow: 'hidden',
         boxShadow: '0 1px 6px rgba(0,0,0,0.05)',
       }}
     >
-      <h2 style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: '#1a3a14', margin: '0 0 4px' }}>
-        Bahasa
-      </h2>
-      <p style={{ fontSize: 12, color: '#9ab095', margin: '0 0 16px' }}>
-        Pilih bahasa tampilan aplikasi
-      </p>
+      <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid #f3f4f6' }}>
+        <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: '#1f2937', margin: 0 }}>
+          Bahasa
+        </p>
+      </div>
 
-      <div style={{ display: 'flex', gap: 10 }}>
-        {LANGUAGES.map(({ code, label, flagSrc }) => {
-          const isActive = activeLang === code;
-          return (
-            <button
-              key={code}
-              type="button"
-              onClick={() => handleSelect(code)}
-              aria-pressed={isActive}
+      {LANGUAGES.map(({ code, label, sub, flagSrc }, i) => {
+        const isActive = activeLang === code;
+        return (
+          <button
+            key={code}
+            type="button"
+            onClick={() => handleSelect(code)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '13px 20px',
+              background: 'white',
+              border: 'none',
+              borderTop: i > 0 ? '1px solid #f3f4f6' : 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            <img
+              src={flagSrc}
+              alt={label}
+              style={{ width: 28, height: 19, objectFit: 'cover', borderRadius: 3, flexShrink: 0 }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, fontWeight: isActive ? 600 : 400, color: '#1f2937', margin: 0 }}>
+                {label}
+              </p>
+              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: '#9ca3af', margin: '1px 0 0' }}>
+                {sub}
+              </p>
+            </div>
+            {/* Radio indicator — ukuran tetap agar tidak ada layout shift */}
+            <div
               style={{
-                flex: 1,
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                border: isActive ? '2px solid #1D3A27' : '2px solid #d1d5db',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 8,
-                padding: '10px 12px',
-                borderRadius: 14,
-                border: isActive ? '1.5px solid #2d5a27' : '1.5px solid #e5e7eb',
-                background: isActive ? '#f0f7ee' : '#f9fafb',
-                cursor: 'pointer',
-                fontFamily: "'Inter', sans-serif",
-                transition: 'all 0.15s ease',
+                flexShrink: 0,
+                transition: 'border-color 0.15s',
               }}
             >
-              <img src={flagSrc} alt={label} style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2 }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: isActive ? '#1D3A27' : '#374151' }}>
-                {label}
-              </span>
               {isActive && (
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#2d5a27', marginLeft: 'auto' }}>
-                  ✓
-                </span>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#1D3A27' }} />
               )}
-            </button>
-          );
-        })}
-      </div>
+            </div>
+          </button>
+        );
+      })}
     </section>
   );
 }

@@ -53,6 +53,10 @@ export const fetchPesananNotifications = (merchantId) =>
       orderNumber: `#${o.order_code || o.id}`,
       customerName: o.pelanggan_nama || 'Pelanggan',
       items: parseItems(o.preview_items),
+      table: o.no_meja || '-',
+      total: o.total_harga ?? null,
+      payment: o.metode_pembayaran || o.payment_method || o.nama_metode ||
+      '-',
       time: parseTime(o.created_at),
       timeAgo: parseTimeAgo(o.created_at),
       read: false,
@@ -70,6 +74,9 @@ export const fetchPencairanNotifications = (merchantId) =>
       type: 'Pencairan',
       amount: w.jumlah ?? w.amount ?? 0,
       description: w.keterangan || `Dana ditransfer ke rekening ${w.rekening || '-'}`.trim(),
+      bank: w.bank || '-',
+      accountNumber: w.account_number || w.rekening || '-',
+      accountName: w.account_name || '-',
       time: parseTime(w.created_at),
       timeAgo: parseTimeAgo(w.created_at),
       read: false,
@@ -97,19 +104,41 @@ export const fetchUlasanNotifications = (merchantId) =>
 
 // ── Pengumuman — dari /announcements (broadcast admin) ───────────────────────
 
-export const fetchPengumumanNotifications = () =>
+export const fetchPengumumanNotifications = (merchantId) =>
   safeGet(async () => {
-    const res = await api.get('/announcements');
-    return res.data.map((a) => ({
-      id: `pengumuman-${a.id}`,
-      type: 'Pengumuman',
-      title: a.judul || a.title || 'Pengumuman',
-      description: a.isi || a.content || a.description || '',
-      time: parseTime(a.created_at),
-      timeAgo: parseTimeAgo(a.created_at),
-      read: false,
-      createdAt: a.created_at,
-    }));
+    const res = await api.get(`/merchant-orders/notifications/${merchantId}`);
+    return res.data
+      .filter((a) => a.tipe !== 'penting' && a.prioritas !== 'tinggi')
+      .map((a) => ({
+        id: `pengumuman-${a.id}`,
+        type: 'Pengumuman',
+        tipe: a.tipe,
+        title: a.judul || a.title || 'Pengumuman',
+        description: a.pesan || a.isi || a.body || a.message || '',
+        time: parseTime(a.created_at),
+        timeAgo: parseTimeAgo(a.created_at),
+        read: false,
+        createdAt: a.created_at,
+      }));
+  });
+
+// ── Penting — notifikasi admin berprioritas tinggi ────────────────────────────
+
+export const fetchPentingNotifications = (merchantId) =>
+  safeGet(async () => {
+    const res = await api.get(`/merchant-orders/notifications/${merchantId}`);
+    return res.data
+      .filter((a) => a.tipe === 'penting' || a.prioritas === 'tinggi')
+      .map((a) => ({
+        id: `penting-${a.id}`,
+        type: 'Penting',
+        title: a.judul || a.title || 'Pesan Penting',
+        description: a.pesan || a.isi || a.body || a.message || '',
+        time: parseTime(a.created_at),
+        timeAgo: parseTimeAgo(a.created_at),
+        read: false,
+        createdAt: a.created_at,
+      }));
   });
 
 // ── Pengingat — diturunkan dari stok produk merchant ────────────────────────
@@ -140,15 +169,16 @@ export const fetchPengingatNotifications = (merchantId) =>
 // ── Gabungkan semua, urutkan terbaru di atas ─────────────────────────────────
 
 export const fetchAllNotifications = async (merchantId) => {
-  const [pesanan, pencairan, ulasan, pengumuman, pengingat] = await Promise.all([
+  const [pesanan, pencairan, ulasan, pengumuman, pengingat, penting] = await Promise.all([
     fetchPesananNotifications(merchantId),
     fetchPencairanNotifications(merchantId),
     fetchUlasanNotifications(merchantId),
-    fetchPengumumanNotifications(),
+    fetchPengumumanNotifications(merchantId),
     fetchPengingatNotifications(merchantId),
+    fetchPentingNotifications(merchantId),
   ]);
 
-  return [...pesanan, ...pencairan, ...ulasan, ...pengumuman, ...pengingat].sort(
+  return [...pesanan, ...pencairan, ...ulasan, ...pengumuman, ...pengingat, ...penting].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
 };

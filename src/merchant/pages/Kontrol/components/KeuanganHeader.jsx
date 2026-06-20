@@ -1,6 +1,6 @@
 import { formatRupiah } from '../../../../shared/utils/format';
 
-const KeuanganHeader = ({ saldo }) => {
+const KeuanganHeader = ({ saldo, lastUpdated, onCairkan }) => {
   return (
     <div
       className="px-4 pt-5 pb-6"
@@ -23,11 +23,14 @@ const KeuanganHeader = ({ saldo }) => {
         <p className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Poppins', sans-serif" }}>
           {formatRupiah(saldo)}
         </p>
-        <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Inter', sans-serif" }}>
-          Terakhir diperbarui: hari ini 09.41
-        </p>
+        {lastUpdated && (
+          <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Inter', sans-serif" }}>
+            Terakhir diperbarui: {lastUpdated}
+          </p>
+        )}
 
         <button
+          onClick={onCairkan}
           className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
           style={{
             background: 'rgba(255,255,255,0.2)',
@@ -36,6 +39,11 @@ const KeuanganHeader = ({ saldo }) => {
             fontFamily: "'Poppins', sans-serif",
           }}
         >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="7" width="20" height="14" rx="2" stroke="white" strokeWidth="1.8"/>
+            <path d="M16 14a1 1 0 110 2 1 1 0 010-2z" fill="white"/>
+            <path d="M2 10h20" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
           Cairkan Dana
         </button>
       </div>
