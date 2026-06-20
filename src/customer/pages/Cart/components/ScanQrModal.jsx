@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import jsQR from 'jsqr';
 import { CameraIcon, CloseIcon } from '../../../../shared/components/icons';
+import { resolveTableByCode } from '../../../../services/diningTableService';
+import useTableStore from '../../../../store/tableStore';
 
 const TUTORIAL_STEPS = [
   {
@@ -23,8 +26,11 @@ const ScanQrModal = ({ open, onClose }) => {
   const [step, setStep] = useState('tutorial');
   const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
+  const [notice, setNotice] = useState('');
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const handlingRef = useRef(false);
+  const setTable = useTableStore((s) => s.setTable);
 
   useEffect(() => {
     if (open) {
@@ -89,6 +95,7 @@ const ScanQrModal = ({ open, onClose }) => {
       return;
     }
     setStep('requesting');
+    setNotice('');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
@@ -109,6 +116,66 @@ const ScanQrModal = ({ open, onClose }) => {
       }
     }
   };
+
+  // Decode QR dari frame video saat streaming. Saat QR meja terbaca, resolve
+  // code → {code,label} via BE (tanpa reload halaman, supaya keranjang tetap
+  // utuh), set meja, lalu tutup modal.
+  useEffect(() => {
+    if (step !== 'streaming') return undefined;
+    handlingRef.current = false;
+    let raf;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const extractCode = (text) => {
+      try {
+        const u = new URL(text);
+        if (u.pathname.replace(/\/+$/, '').endsWith('/dining-tables/scan')) {
+          return u.searchParams.get('code');
+        }
+      } catch {
+        /* QR bukan URL meja */
+      }
+      return null;
+    };
+
+    const tick = () => {
+      const video = videoRef.current;
+      if (!handlingRef.current && video && video.readyState >= 2 && video.videoWidth) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        let result = null;
+        try {
+          const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          result = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+        } catch {
+          /* getImageData bisa gagal sesaat sebelum frame siap */
+        }
+        if (result?.data) {
+          const code = extractCode(result.data);
+          if (code) {
+            handlingRef.current = true; // hentikan deteksi selama resolve
+            resolveTableByCode(code)
+              .then((t) => {
+                stopStream();
+                setTable({ code: t.code, label: t.label });
+                onClose();
+              })
+              .catch(() => {
+                handlingRef.current = false; // izinkan scan ulang
+                setNotice('Meja tidak ditemukan atau tidak aktif.');
+              });
+          } else {
+            setNotice('QR ini bukan QR meja yang valid. Arahkan ke QR meja.');
+          }
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [step, onClose, setTable]);
 
   if (!mounted) return null;
 
@@ -260,7 +327,7 @@ const ScanQrModal = ({ open, onClose }) => {
                 className="text-[11.5px] text-gray-500 mt-0.5"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
-                Pastikan QR berada di dalam bingkai emas.
+                {notice || 'Pastikan QR berada di dalam bingkai emas.'}
               </p>
               <button
                 type="button"

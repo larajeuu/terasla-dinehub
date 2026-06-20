@@ -28,3 +28,10 @@ export const deleteDiningTable = async (id) => {
 // URL yang ditanam di QR: backend akan validasi `code` lalu redirect ke FE.
 export const buildScanUrl = (code) =>
   `${API_URL.replace(/\/+$/, '')}/dining-tables/scan?code=${encodeURIComponent(code)}`;
+
+// Resolve kode QR → { code, label } untuk scanner in-app (tanpa redirect halaman,
+// agar keranjang tidak ter-reset). 404 jika meja tidak ada / tidak aktif.
+export const resolveTableByCode = async (code) => {
+  const res = await api.get('/dining-tables/resolve', { params: { code } });
+  return res.data; // { code, label }
+};
