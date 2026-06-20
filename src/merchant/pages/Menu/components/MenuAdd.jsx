@@ -32,8 +32,8 @@ const MenuAdd = ({ onBack, onAdd }) => {
         available,
         imageFile,
       });
-    } catch {
-      setError('Gagal menambah menu. Coba lagi.');
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Gagal menambah menu. Coba lagi.');
     } finally {
       setSaving(false);
     }

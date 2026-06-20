@@ -39,8 +39,11 @@ export const uploadProductImage = async (productId, file) => {
   const form = new FormData();
   form.append('file', file);
   const token = localStorage.getItem('token');
+  // Normalkan base URL: VITE_API_URL bisa berakhiran '/', kalau disambung manual
+  // jadi '//attachments' (double slash) → 404. Strip dulu trailing slash-nya.
+  const base = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
   const res = await axios.post(
-    `${import.meta.env.VITE_API_URL}/attachments/product/${productId}`,
+    `${base}/attachments/product/${productId}`,
     form,
     { headers: token ? { Authorization: `Bearer ${token}` } : {} },
   );

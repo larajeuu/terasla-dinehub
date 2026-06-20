@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { formatRupiah } from '../../../../shared/utils/format';
 
 const MenuDetail = ({ menu, onBack, onSave }) => {
   const [name, setName] = useState(menu.name);
@@ -34,8 +33,8 @@ const MenuDetail = ({ menu, onBack, onSave }) => {
         image: imagePreview,
         imageFile,
       });
-    } catch {
-      setError('Gagal menyimpan. Coba lagi.');
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Gagal menyimpan. Coba lagi.');
     } finally {
       setSaving(false);
     }
