@@ -1,10 +1,46 @@
 import { formatRupiah } from '../../../../shared/utils/format';
 
 const statusConfig = {
-  Baru: { bg: '#eff6ff', color: '#2563eb' },
+  'Perlu Diproses': { bg: '#eff6ff', color: '#2563eb' },
   Diproses: { bg: '#fffbeb', color: '#d97706' },
   Selesai: { bg: '#f0fdf4', color: '#16a34a' },
   Dibatalkan: { bg: '#fef2f2', color: '#dc2626' },
+};
+
+// Format singkat batas waktu, mis. "20 Jun, 14:35".
+const formatJam = (iso) => {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleString('id-ID', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    });
+  } catch {
+    return null;
+  }
+};
+
+const WarningNote = ({ tone = 'amber', children }) => {
+  const tones = {
+    amber: { bg: '#fffbeb', border: '#fde68a', color: '#92400e' },
+    red: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c' },
+  };
+  const t = tones[tone] || tones.amber;
+  return (
+    <div
+      className="rounded-xl px-3 py-2.5 mb-3 flex items-start gap-2"
+      style={{ background: t.bg, border: `1px solid ${t.border}` }}
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ marginTop: 1, flexShrink: 0 }}>
+        <path
+          d="M12 9v4M12 17h.01M10.3 3.86l-8.05 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.75-3.14l-8.05-14a2 2 0 0 0-3.4 0z"
+          stroke={t.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+        />
+      </svg>
+      <p className="text-[11px] leading-relaxed" style={{ color: t.color, fontFamily: "'Inter', sans-serif" }}>
+        {children}
+      </p>
+    </div>
+  );
 };
 
 const OrderDetail = ({ order, onClose, onUpdateStatus }) => {
@@ -92,8 +128,29 @@ const OrderDetail = ({ order, onClose, onUpdateStatus }) => {
             </p>
           </div>
 
+          {/* Peringatan konsekuensi bila merchant tidak merespons */}
+          {order.status === 'Perlu Diproses' && (
+            <WarningNote tone="amber">
+              Terima atau tolak pesanan ini
+              {order.autoCancelAt ? ` sebelum ${formatJam(order.autoCancelAt)}` : ' segera'}.
+              Jika dibiarkan, pesanan <b>otomatis dibatalkan</b> dan dana dikembalikan ke pelanggan.
+            </WarningNote>
+          )}
+          {order.status === 'Diproses' && (
+            <WarningNote tone={order.isPrepOverdue ? 'red' : 'amber'}>
+              {order.isPrepOverdue ? (
+                <>Pesanan ini <b>sudah melewati batas waktu penyelesaian</b>. Segera selesaikan
+                  agar pelanggan tidak menunggu terlalu lama.</>
+              ) : (
+                <>Selesaikan pesanan
+                  {order.prepDeadlineAt ? ` sebelum ${formatJam(order.prepDeadlineAt)}` : ''}.
+                  Jika lewat, pesanan ditandai <b>terlambat</b>.</>
+              )}
+            </WarningNote>
+          )}
+
           {/* Tombol aksi */}
-          {order.status === 'Baru' && (
+          {order.status === 'Perlu Diproses' && (
             <div className="flex gap-3">
               <button
                 onClick={() => onUpdateStatus(order.id, 'Dibatalkan')}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderByPaymentToken } from '../../../services/paymentService';
+import { confirmCustomerOrder } from '../../../services/customerOrderService';
 import { formatRupiah } from '../../../shared/utils/format';
 
 // Label + warna status (mencakup status customer order & merchant order).
@@ -38,6 +39,40 @@ const formatTanggal = (iso) => {
   }
 };
 
+// Format singkat untuk batas waktu (deadline), mis. "20 Jun, 14:35".
+const formatJam = (iso) => {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleString('id-ID', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    });
+  } catch {
+    return null;
+  }
+};
+
+const WarningBox = ({ tone = 'amber', children }) => {
+  const tones = {
+    amber: { bg: '#fffbeb', border: '#fde68a', color: '#92400e' },
+    red: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c' },
+  };
+  const t = tones[tone] || tones.amber;
+  return (
+    <div
+      className="rounded-2xl px-4 py-3 flex items-start gap-2.5"
+      style={{ background: t.bg, border: `1px solid ${t.border}` }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ marginTop: 1, flexShrink: 0 }}>
+        <path
+          d="M12 9v4M12 17h.01M10.3 3.86l-8.05 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.75-3.14l-8.05-14a2 2 0 0 0-3.4 0z"
+          stroke={t.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+        />
+      </svg>
+      <p className="text-xs leading-relaxed" style={{ color: t.color }}>{children}</p>
+    </div>
+  );
+};
+
 const InfoRow = ({ label, value, accent }) => (
   <div className="flex items-center justify-between py-1.5">
     <span className="text-xs text-gray-500">{label}</span>
@@ -53,6 +88,8 @@ const OrderSummary = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmErr, setConfirmErr] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -67,6 +104,30 @@ const OrderSummary = () => {
   }, [token]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Selama pesanan masih dikerjakan tenant (open/process), poll berkala supaya
+  // tombol "Konfirmasi" muncul otomatis begitu semua tenant selesai
+  // (status struk → waiting_confirmation). Berhenti saat menunggu konfirmasi/final.
+  useEffect(() => {
+    if (!order) return undefined;
+    const inProgress = order.status === 'open' || order.status === 'process';
+    if (!inProgress) return undefined;
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
+  }, [order, load]);
+
+  const handleConfirm = async () => {
+    if (!order?.id) return;
+    setConfirming(true);
+    setConfirmErr(null);
+    try {
+      setOrder(await confirmCustomerOrder(order.id));
+    } catch (err) {
+      setConfirmErr(err?.response?.data?.detail || 'Gagal mengonfirmasi pesanan');
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   const merchantOrders = order?.merchant_orders || [];
 
@@ -97,6 +158,22 @@ const OrderSummary = () => {
 
       {!loading && !error && order && (
         <div className="p-4 space-y-4">
+          {/* Peringatan konsekuensi bila customer tidak merespons */}
+          {order.status === 'verifying' && (
+            <WarningBox tone="amber">
+              Selesaikan pembayaran
+              {order.pay_deadline_at ? ` sebelum ${formatJam(order.pay_deadline_at)}` : ''}.
+              Jika belum dibayar, <b>pesanan otomatis dibatalkan</b> dan stok dilepas kembali.
+            </WarningBox>
+          )}
+          {order.status === 'waiting_confirmation' && (
+            <WarningBox tone="amber">
+              Semua pesanan sudah disiapkan. Tekan <b>Konfirmasi Pesanan Diterima</b> di bawah
+              {order.auto_confirm_at ? ` sebelum ${formatJam(order.auto_confirm_at)}` : ''}.
+              Jika tidak, pesanan <b>otomatis ditandai selesai</b>.
+            </WarningBox>
+          )}
+
           {/* Ringkasan order */}
           <div className="bg-white rounded-2xl p-4 border" style={{ borderColor: '#e5e7eb' }}>
             <div className="flex items-center justify-between mb-2">
@@ -136,6 +213,18 @@ const OrderSummary = () => {
                     <StatusBadge status={mo.status} />
                   </div>
 
+                  {mo.status === 'terbuka' && mo.auto_cancel_at && (
+                    <p className="px-4 pt-2 text-[11px] leading-snug" style={{ color: '#92400e' }}>
+                      Menunggu tenant menerima. Bila tak direspons sebelum {formatJam(mo.auto_cancel_at)},
+                      pesanan tenant ini otomatis dibatalkan & dananya dikembalikan.
+                    </p>
+                  )}
+                  {mo.status === 'diproses' && mo.is_prep_overdue && (
+                    <p className="px-4 pt-2 text-[11px] leading-snug" style={{ color: '#b91c1c' }}>
+                      Tenant ini melewati perkiraan waktu penyiapan. Mohon tunggu sebentar lagi.
+                    </p>
+                  )}
+
                   <div className="px-4 py-2">
                     {(mo.items || []).map((it) => (
                       <div key={it.id} className="flex items-start justify-between gap-3 py-1.5">
@@ -166,13 +255,39 @@ const OrderSummary = () => {
             </div>
           </div>
 
-          <button
-            onClick={() => navigate('/')}
-            className="w-full py-3 rounded-2xl text-white text-sm font-bold"
-            style={{ background: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
-          >
-            Kembali ke Beranda
-          </button>
+          {order.status === 'waiting_confirmation' ? (
+            <div className="space-y-2">
+              {confirmErr && (
+                <p className="text-xs text-red-500 text-center">{confirmErr}</p>
+              )}
+              <button
+                onClick={handleConfirm}
+                disabled={confirming}
+                className="w-full py-3 rounded-2xl text-white text-sm font-bold disabled:opacity-60"
+                style={{ background: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
+              >
+                {confirming ? 'Memproses...' : 'Konfirmasi Pesanan Diterima'}
+              </button>
+              <p className="text-[11px] text-gray-400 text-center px-4 leading-relaxed">
+                Tekan setelah seluruh pesanan kamu terima. Pesanan akan ditandai selesai.
+              </p>
+              <button
+                onClick={() => navigate('/')}
+                className="w-full py-2.5 rounded-2xl text-sm font-semibold"
+                style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
+              >
+                Nanti Saja
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/')}
+              className="w-full py-3 rounded-2xl text-white text-sm font-bold"
+              style={{ background: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
+            >
+              Kembali ke Beranda
+            </button>
+          )}
         </div>
       )}
     </div>

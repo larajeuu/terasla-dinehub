@@ -46,6 +46,14 @@ const Dashboard = () => {
     fetchOrders();
   }, [fetchOrders]);
 
+  // Polling ringan: pesanan yang baru dibayar (jadi 'terbuka') & pembatalan
+  // otomatis akibat timeout muncul tanpa perlu reload manual.
+  useEffect(() => {
+    if (!user?.merchantId) return undefined;
+    const t = setInterval(fetchOrders, 10000);
+    return () => clearInterval(t);
+  }, [user?.merchantId, fetchOrders]);
+
   useEffect(() => {
     if (!user?.merchantId) return;
     getMerchantById(user.merchantId)
@@ -83,7 +91,7 @@ const Dashboard = () => {
   const countByStatus = (status) => orders.filter((o) => o.status === status).length;
 
   const todayOrders = orders.filter((o) => isToday(o.date));
-  const todayPesananBaru = todayOrders.filter((o) => o.status === 'Baru').length;
+  const todayPesananBaru = todayOrders.filter((o) => o.status === 'Perlu Diproses').length;
   const todayDiproses = todayOrders.filter((o) => o.status === 'Diproses').length;
   const todayPendapatan = todayOrders
     .filter((o) => o.status === 'Selesai')
@@ -118,7 +126,7 @@ const Dashboard = () => {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               counts={{
-                Baru: countByStatus('Baru'),
+                'Perlu Diproses': countByStatus('Perlu Diproses'),
                 Diproses: countByStatus('Diproses'),
                 Selesai: countByStatus('Selesai'),
               }}
@@ -154,7 +162,7 @@ const Dashboard = () => {
         />
       )}
 
-      <BottomNavbar notifCount={countByStatus('Baru')} />
+      <BottomNavbar notifCount={countByStatus('Perlu Diproses')} />
     </div>
   );
 };

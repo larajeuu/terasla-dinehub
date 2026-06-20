@@ -1,7 +1,7 @@
 import { formatRupiah } from '../../../../shared/utils/format';
 
 const statusConfig = {
-  Baru: { bg: '#eff6ff', color: '#2563eb', label: 'Baru' },
+  'Perlu Diproses': { bg: '#eff6ff', color: '#2563eb', label: 'Perlu Diproses' },
   Diproses: { bg: '#fffbeb', color: '#d97706', label: 'Diproses' },
   Selesai: { bg: '#f0fdf4', color: '#16a34a', label: 'Selesai' },
   Dibatalkan: { bg: '#fef2f2', color: '#dc2626', label: 'Dibatalkan' },

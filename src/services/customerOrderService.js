@@ -150,3 +150,11 @@ export const createCustomerOrder = async (payload) => {
   const res = await api.post('/customer-orders', payload);
   return mapDetail(res.data);
 };
+
+// Konfirmasi pesanan selesai oleh customer (waiting_confirmation → done).
+// Mengembalikan struk MENTAH (shape CustomerOrderOut) — sama seperti
+// getOrderByPaymentToken — agar bisa langsung dipakai memperbarui OrderSummary.
+export const confirmCustomerOrder = async (id) => {
+  const res = await api.post(`/customer-orders/${id}/confirm`);
+  return res.data;
+};

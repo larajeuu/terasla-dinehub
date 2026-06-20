@@ -1,3 +1,4 @@
+import axios from 'axios';
 import api from './api';
 import { dummyProducts } from '../data/dummy/products';
 
@@ -27,6 +28,25 @@ export const getMerchantMenus = async (merchantId) => {
   return res.data.map(mapProduct);
 };
 
+// Upload/ganti foto produk ke endpoint attachment terpisah (multipart).
+// Server menyimpan file (Vercel Blob / lokal) lalu meng-update product.foto,
+// dan mengembalikan AttachmentOut { url, ... }.
+//
+// Sengaja TIDAK memakai instance `api` (yang default Content-Type-nya
+// application/json) karena axios akan mengubah FormData menjadi JSON. Pakai
+// axios polos agar browser menyetel "multipart/form-data; boundary=..." sendiri.
+export const uploadProductImage = async (productId, file) => {
+  const form = new FormData();
+  form.append('file', file);
+  const token = localStorage.getItem('token');
+  const res = await axios.post(
+    `${import.meta.env.VITE_API_URL}/attachments/product/${productId}`,
+    form,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+  );
+  return res.data; // { url, filename, ... }
+};
+
 export const createMenu = async (merchantId, data) => {
   if (USE_DUMMY) {
     await delay(300);
@@ -43,30 +63,22 @@ export const createMenu = async (merchantId, data) => {
     });
   }
 
-  if (data.imageFile) {
-    const form = new FormData();
-    form.append('nama', data.name);
-    form.append('deskripsi', data.description || '');
-    form.append('harga', data.price);
-    form.append('stok', data.stock);
-    form.append('merchant_id', merchantId);
-    form.append('is_available', data.available);
-    form.append('foto', data.imageFile);
-    const res = await api.post('/products/', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return mapProduct(res.data);
-  }
-
+  // 1) Buat produk (JSON). merchant_id ditimpa dari token di backend.
   const res = await api.post('/products/', {
     nama: data.name,
     deskripsi: data.description || '',
     harga: data.price,
     stok: data.stock,
     merchant_id: merchantId,
-    is_available: data.available,
   });
-  return mapProduct(res.data);
+  let product = res.data;
+
+  // 2) Bila ada foto, unggah ke endpoint attachment lalu sematkan url-nya.
+  if (data.imageFile) {
+    const att = await uploadProductImage(product.id, data.imageFile);
+    product = { ...product, foto: att.url };
+  }
+  return mapProduct(product);
 };
 
 export const updateMenu = async (id, data) => {
@@ -83,28 +95,21 @@ export const updateMenu = async (id, data) => {
     });
   }
 
-  if (data.imageFile) {
-    const form = new FormData();
-    form.append('nama', data.name);
-    form.append('deskripsi', data.description || '');
-    form.append('harga', data.price);
-    form.append('stok', data.stock);
-    form.append('is_available', data.available);
-    form.append('foto', data.imageFile);
-    const res = await api.put(`/products/${id}`, form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return mapProduct(res.data);
-  }
-
+  // 1) Update field produk (JSON).
   const res = await api.put(`/products/${id}`, {
     nama: data.name,
     deskripsi: data.description || '',
     harga: data.price,
     stok: data.stock,
-    is_available: data.available,
   });
-  return mapProduct(res.data);
+  let product = res.data;
+
+  // 2) Bila ada foto baru, unggah & ganti; jika tidak, pertahankan foto lama.
+  if (data.imageFile) {
+    const att = await uploadProductImage(id, data.imageFile);
+    product = { ...product, foto: att.url };
+  }
+  return mapProduct(product);
 };
 
 // PUT karena backend tidak support PATCH pada /products/{id}

@@ -6,10 +6,11 @@ const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
 const paymentLabel = (m) => (m ? String(m) : '');
 
-// Backend status → label UI (Indonesia, kapital)
+// Backend status → label UI (Indonesia, kapital).
+// `baru` (belum dibayar) sengaja tidak dipetakan: pesanan tsb difilter keluar
+// di getMerchantOrders, jadi merchant hanya melihat pesanan yang sudah dibayar.
 const ITEM_STATUS = {
-  baru: 'Baru',
-  terbuka: 'Baru',
+  terbuka: 'Perlu Diproses',   // sudah dibayar, menunggu merchant terima
   diproses: 'Diproses',
   selesai: 'Selesai',
   dibatalkan: 'Dibatalkan',
@@ -18,7 +19,7 @@ const mapStatus = (s) => ITEM_STATUS[s?.toLowerCase()] || s;
 
 // Label UI → backend status
 const STATUS_TO_BACKEND = {
-  Baru: 'baru',
+  'Perlu Diproses': 'terbuka',
   Diproses: 'diproses',
   Selesai: 'selesai',
   Dibatalkan: 'dibatalkan',
@@ -66,7 +67,10 @@ export const getMerchantOrders = async (merchantId) => {
     return dummyMerchantOrders(merchantId);
   }
   const res = await api.get('/merchant-orders', { params: { merchant_id: merchantId } });
-  return res.data.map((o) => ({
+  return res.data
+    // Pesanan 'baru' = belum dibayar (customer order masih verifying) → sembunyikan.
+    .filter((o) => (o.status || '').toLowerCase() !== 'baru')
+    .map((o) => ({
     id: o.order_code || String(o.id),
     dbId: o.id,
     orderCode: o.order_code,
@@ -79,6 +83,9 @@ export const getMerchantOrders = async (merchantId) => {
     items: parseItems(o.preview_items),
     payment: paymentLabel(o.metode_pembayaran || o.payment_method || o.nama_metode),
     date: o.created_at,
+    autoCancelAt: o.auto_cancel_at,       // batas merchant terima (status terbuka)
+    prepDeadlineAt: o.prep_deadline_at,   // batas penyelesaian (status diproses)
+    isPrepOverdue: o.is_prep_overdue,
   }));
 };
 
