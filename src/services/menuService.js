@@ -15,6 +15,8 @@ const mapProduct = (p) => ({
   // is_available jika ada di backend, fallback: stok > 0
   available: p.is_available !== undefined ? Boolean(p.is_available) : p.stok > 0,
   image: p.foto || null,
+  categoryId: p.category_id ?? null,
+  categoryName: p.category?.nama_kategori ?? null,
 });
 
 export const getMerchantMenus = async (merchantId) => {
@@ -63,6 +65,7 @@ export const createMenu = async (merchantId, data) => {
       is_available: data.available,
       foto: data.imageFile ? URL.createObjectURL(data.imageFile) : null,
       merchant_id: Number(merchantId),
+      category_id: data.categoryId ?? null,
     });
   }
 
@@ -73,6 +76,7 @@ export const createMenu = async (merchantId, data) => {
     harga: data.price,
     stok: data.stock,
     merchant_id: merchantId,
+    category_id: data.categoryId ?? null,
   });
   let product = res.data;
 
@@ -95,6 +99,7 @@ export const updateMenu = async (id, data) => {
       stok: data.stock,
       is_available: data.available,
       foto: data.imageFile ? URL.createObjectURL(data.imageFile) : (data.image || null),
+      category_id: data.categoryId ?? null,
     });
   }
 
@@ -104,6 +109,7 @@ export const updateMenu = async (id, data) => {
     deskripsi: data.description || '',
     harga: data.price,
     stok: data.stock,
+    category_id: data.categoryId ?? null,
   });
   let product = res.data;
 

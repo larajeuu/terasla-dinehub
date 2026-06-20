@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getCategories } from '../../../../services/categoryService';
 
 const MenuAdd = ({ onBack, onAdd }) => {
   const [name, setName] = useState('');
@@ -6,10 +7,18 @@ const MenuAdd = ({ onBack, onAdd }) => {
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState(0);
   const [available, setAvailable] = useState(true);
+  const [categoryId, setCategoryId] = useState('');
+  const [categories, setCategories] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]));
+  }, []);
 
   const handleFoto = (e) => {
     const file = e.target.files[0];
@@ -30,6 +39,7 @@ const MenuAdd = ({ onBack, onAdd }) => {
         price: Number(price),
         stock: Number(stock),
         available,
+        categoryId: categoryId ? Number(categoryId) : null,
         imageFile,
       });
     } catch (err) {
@@ -123,6 +133,24 @@ const MenuAdd = ({ onBack, onAdd }) => {
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
                 style={{ border: '1px solid #e5e7eb', fontFamily: "'Inter', sans-serif", color: '#374151' }}
               />
+            </div>
+
+            {/* Kategori */}
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block" style={{ fontFamily: "'Inter', sans-serif" }}>
+                Kategori
+              </label>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-white"
+                style={{ border: '1px solid #e5e7eb', fontFamily: "'Inter', sans-serif", color: categoryId ? '#374151' : '#9ca3af' }}
+              >
+                <option value="">Pilih kategori (opsional)</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nama_kategori}</option>
+                ))}
+              </select>
             </div>
 
             {/* Harga */}

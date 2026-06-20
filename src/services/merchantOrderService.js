@@ -91,6 +91,6 @@ export const getMerchantOrders = async (merchantId) => {
 
 export const updateMerchantOrderStatus = async (dbId, uiStatus) => {
   const backendStatus = STATUS_TO_BACKEND[uiStatus] || uiStatus.toLowerCase();
-  const res = await api.put(`/merchant-orders/${dbId}`, { status: backendStatus });
+  const res = await api.put(`/merchant-orders/${dbId}/status`, { status: backendStatus });
   return res.data;
 };
