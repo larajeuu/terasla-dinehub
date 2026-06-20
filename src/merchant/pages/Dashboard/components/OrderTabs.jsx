@@ -1,9 +1,10 @@
-const tabs = ['Semua', 'Perlu Diproses', 'Diproses', 'Selesai', 'Dibatalkan'];
+const tabs = ['Semua', 'Perlu Diproses', 'Diproses', 'Menunggu Konfirmasi', 'Selesai', 'Dibatalkan'];
 
 const tabColors = {
   Semua: { bg: '#1D3A27', border: '#1D3A27' },
   'Perlu Diproses': { bg: '#2563eb', border: '#2563eb' },
   Diproses: { bg: '#d97706', border: '#d97706' },
+  'Menunggu Konfirmasi': { bg: '#4f46e5', border: '#4f46e5' },
   Selesai: { bg: '#16a34a', border: '#16a34a' },
   Dibatalkan: { bg: '#dc2626', border: '#dc2626' },
 };

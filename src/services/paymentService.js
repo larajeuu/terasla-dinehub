@@ -27,3 +27,10 @@ export const getOrderByPaymentToken = async (token) => {
   const res = await api.get(`/payments/status/${token}/order`);
   return res.data;
 };
+
+// Batalkan SATU tenant yang telat diproses (refund parsial) via token publik.
+// Hanya tenant tsb yang dibatalkan; tenant lain tetap berjalan. Return struk terbaru.
+export const cancelMerchantOrderByToken = async (token, merchantOrderId) => {
+  const res = await api.post(`/payments/status/${token}/merchant-orders/${merchantOrderId}/cancel`);
+  return res.data;
+};

@@ -128,6 +128,7 @@ const Dashboard = () => {
               counts={{
                 'Perlu Diproses': countByStatus('Perlu Diproses'),
                 Diproses: countByStatus('Diproses'),
+                'Menunggu Konfirmasi': countByStatus('Menunggu Konfirmasi'),
                 Selesai: countByStatus('Selesai'),
               }}
             />

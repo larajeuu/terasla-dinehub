@@ -151,10 +151,17 @@ export const createCustomerOrder = async (payload) => {
   return mapDetail(res.data);
 };
 
-// Konfirmasi pesanan selesai oleh customer (waiting_confirmation → done).
-// Mengembalikan struk MENTAH (shape CustomerOrderOut) — sama seperti
-// getOrderByPaymentToken — agar bisa langsung dipakai memperbarui OrderSummary.
-export const confirmCustomerOrder = async (id) => {
-  const res = await api.post(`/customer-orders/${id}/confirm`);
+// Ambil struk MENTAH (shape CustomerOrderOut) via HASH opaque — dipakai halaman
+// OrderSummary saat dibuka via link email (/order/:hash), tanpa token pembayaran.
+// Hash tak bisa ditebak/di-enumerate (akses by-id kini admin-only).
+export const getCustomerOrderByHash = async (hash) => {
+  const res = await api.get(`/customer-orders/h/${hash}`);
+  return res.data;
+};
+
+// Konfirmasi pesanan selesai oleh customer (waiting_confirmation → done) via hash.
+// Mengembalikan struk MENTAH (shape CustomerOrderOut).
+export const confirmCustomerOrderByHash = async (hash) => {
+  const res = await api.post(`/customer-orders/h/${hash}/confirm`);
   return res.data;
 };

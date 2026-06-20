@@ -15,7 +15,16 @@ const ITEM_STATUS = {
   selesai: 'Selesai',
   dibatalkan: 'Dibatalkan',
 };
-const mapStatus = (s) => ITEM_STATUS[s?.toLowerCase()] || s;
+// `selesai` di sisi merchant = selesai DISIAPKAN, belum tentu tuntas: selama
+// struk induk belum 'done' (customer belum konfirmasi), tampilkan sebagai
+// 'Menunggu Konfirmasi' agar merchant tahu pesanan belum benar-benar selesai.
+const mapStatus = (s, coStatus) => {
+  const base = ITEM_STATUS[s?.toLowerCase()] || s;
+  if (base === 'Selesai' && coStatus && coStatus !== 'done') {
+    return 'Menunggu Konfirmasi';
+  }
+  return base;
+};
 
 // Label UI → backend status
 const STATUS_TO_BACKEND = {
@@ -74,7 +83,7 @@ export const getMerchantOrders = async (merchantId) => {
     id: o.order_code || String(o.id),
     dbId: o.id,
     orderCode: o.order_code,
-    status: mapStatus(o.status),
+    status: mapStatus(o.status, o.customer_order_status),
     total: o.total_harga,
     customerName: o.pelanggan_nama,
     table: o.no_meja,

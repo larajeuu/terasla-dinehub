@@ -3,6 +3,7 @@ import { formatRupiah } from '../../../../shared/utils/format';
 const statusConfig = {
   'Perlu Diproses': { bg: '#eff6ff', color: '#2563eb' },
   Diproses: { bg: '#fffbeb', color: '#d97706' },
+  'Menunggu Konfirmasi': { bg: '#eef2ff', color: '#4f46e5' },
   Selesai: { bg: '#f0fdf4', color: '#16a34a' },
   Dibatalkan: { bg: '#fef2f2', color: '#dc2626' },
 };
@@ -190,6 +191,31 @@ const OrderDetail = ({ order, onClose, onUpdateStatus }) => {
             >
               Selesaikan Pesanan
             </button>
+          )}
+
+          {order.status === 'Menunggu Konfirmasi' && (
+            <div className="space-y-3">
+              <div
+                className="rounded-xl px-3 py-2.5 flex items-start gap-2"
+                style={{ background: '#eef2ff', border: '1px solid #c7d2fe' }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ marginTop: 1, flexShrink: 0 }}>
+                  <circle cx="12" cy="12" r="9" stroke="#4338ca" strokeWidth="1.8" />
+                  <path d="M12 11v5M12 8h.01" stroke="#4338ca" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                <p className="text-[11px] leading-relaxed" style={{ color: '#4338ca', fontFamily: "'Inter', sans-serif" }}>
+                  Pesanan sudah selesai disiapkan. Menunggu <b>konfirmasi pelanggan</b>
+                  {' '}sebelum ditandai selesai — tidak ada tindakan lain dari kamu.
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-full py-3 rounded-2xl font-semibold text-sm transition-all active:scale-95"
+                style={{ background: '#f3f4f6', color: '#6b7280', fontFamily: "'Poppins', sans-serif" }}
+              >
+                Tutup
+              </button>
+            </div>
           )}
 
           {(order.status === 'Selesai' || order.status === 'Dibatalkan') && (

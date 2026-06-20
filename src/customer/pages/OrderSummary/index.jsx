@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderByPaymentToken } from '../../../services/paymentService';
-import { confirmCustomerOrder } from '../../../services/customerOrderService';
+import { getOrderByPaymentToken, cancelMerchantOrderByToken } from '../../../services/paymentService';
+import { confirmCustomerOrderByHash, getCustomerOrderByHash } from '../../../services/customerOrderService';
 import { formatRupiah } from '../../../shared/utils/format';
 
 // Label + warna status (mencakup status customer order & merchant order).
@@ -83,25 +83,28 @@ const InfoRow = ({ label, value, accent }) => (
 );
 
 const OrderSummary = () => {
-  const { token } = useParams();
+  const { token, hash } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [confirmErr, setConfirmErr] = useState(null);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [cancelErr, setCancelErr] = useState(null);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      setOrder(await getOrderByPaymentToken(token));
+      // Via token pembayaran (alur normal) atau via hash (link email /order/:hash).
+      setOrder(token ? await getOrderByPaymentToken(token) : await getCustomerOrderByHash(hash));
     } catch (err) {
       setError(err?.response?.data?.detail || 'Gagal memuat ringkasan transaksi');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, hash]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -117,15 +120,27 @@ const OrderSummary = () => {
   }, [order, load]);
 
   const handleConfirm = async () => {
-    if (!order?.id) return;
+    if (!order?.hash) return;
     setConfirming(true);
     setConfirmErr(null);
     try {
-      setOrder(await confirmCustomerOrder(order.id));
+      setOrder(await confirmCustomerOrderByHash(order.hash));
     } catch (err) {
       setConfirmErr(err?.response?.data?.detail || 'Gagal mengonfirmasi pesanan');
     } finally {
       setConfirming(false);
+    }
+  };
+
+  const handleCancelTenant = async (moId) => {
+    setCancellingId(moId);
+    setCancelErr(null);
+    try {
+      setOrder(await cancelMerchantOrderByToken(token, moId));
+    } catch (err) {
+      setCancelErr(err?.response?.data?.detail || 'Gagal membatalkan pesanan tenant');
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -220,9 +235,27 @@ const OrderSummary = () => {
                     </p>
                   )}
                   {mo.status === 'diproses' && mo.is_prep_overdue && (
-                    <p className="px-4 pt-2 text-[11px] leading-snug" style={{ color: '#b91c1c' }}>
-                      Tenant ini melewati perkiraan waktu penyiapan. Mohon tunggu sebentar lagi.
-                    </p>
+                    <div className="px-4 pt-2.5">
+                      <p className="text-[11px] leading-snug mb-2" style={{ color: '#b91c1c' }}>
+                        Tenant ini melewati batas waktu penyiapan.
+                        {token
+                          ? ' Kamu bisa membatalkan pesanan tenant ini & dananya akan dikembalikan. Tenant lain tidak terpengaruh.'
+                          : ' Mohon tunggu, atau buka halaman ini dari tautan pembayaranmu untuk membatalkan.'}
+                      </p>
+                      {token && (
+                        <button
+                          onClick={() => handleCancelTenant(mo.id)}
+                          disabled={cancellingId === mo.id}
+                          className="text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all active:scale-[0.98] disabled:opacity-60"
+                          style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', fontFamily: "'Poppins', sans-serif" }}
+                        >
+                          {cancellingId === mo.id ? 'Membatalkan…' : 'Batalkan tenant ini & minta refund'}
+                        </button>
+                      )}
+                      {cancelErr && cancellingId === null && (
+                        <p className="text-[11px] text-red-500 mt-1.5">{cancelErr}</p>
+                      )}
+                    </div>
                   )}
 
                   <div className="px-4 py-2">
