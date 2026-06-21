@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getCategories } from '../../../../services/categoryService';
+import AddonEditor from './AddonEditor';
 
 const MenuDetail = ({ menu, onBack, onSave }) => {
   const [name, setName] = useState(menu.name);
@@ -9,6 +10,7 @@ const MenuDetail = ({ menu, onBack, onSave }) => {
   const [available, setAvailable] = useState(menu.available);
   const [categoryId, setCategoryId] = useState(menu.categoryId ?? '');
   const [categories, setCategories] = useState([]);
+  const [addons, setAddons] = useState(menu.addons || []);
   const [imagePreview, setImagePreview] = useState(menu.image);
   const [imageFile, setImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -40,6 +42,7 @@ const MenuDetail = ({ menu, onBack, onSave }) => {
         stock: Number(stock),
         available,
         categoryId: categoryId ? Number(categoryId) : null,
+        addons,
         image: imagePreview,
         imageFile,
       });
@@ -227,6 +230,9 @@ const MenuDetail = ({ menu, onBack, onSave }) => {
                 />
               </button>
             </div>
+
+            {/* Item tambahan (add-on) */}
+            <AddonEditor value={addons} onChange={setAddons} />
           </div>
         </div>
       </div>

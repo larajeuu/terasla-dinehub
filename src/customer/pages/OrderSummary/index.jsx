@@ -266,8 +266,13 @@ const OrderSummary = () => {
                             {it.product?.nama || 'Produk'}
                             {it.varian ? <span className="text-gray-400"> · {it.varian}</span> : null}
                           </p>
+                          {it.additionals ? (
+                            <p className="text-[11px] truncate" style={{ color: '#C8961A' }}>
+                              + {it.additionals}
+                            </p>
+                          ) : null}
                           <p className="text-[11px] text-gray-400">
-                            {it.jumlah} × {formatRupiah(it.harga_satuan)}
+                            {it.jumlah} × {formatRupiah(it.harga_satuan + (it.additionals_harga || 0))}
                           </p>
                         </div>
                         <span className="text-sm font-semibold text-gray-700 tabular-nums">

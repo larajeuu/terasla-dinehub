@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 
+// Harga satuan efektif = harga produk + total harga add-on yang DIPILIH.
+// Add-on yang dipilih disimpan di `item.selectedAddons` (berbeda dari daftar
+// add-on yang tersedia di `product.additionals`).
+export const itemUnitPrice = (item) =>
+  (item.harga || 0) +
+  (item.selectedAddons?.reduce((s, a) => s + (a.harga || a.price || 0), 0) || 0);
+
 const useCartStore = create((set, get) => ({
   items: [],
 
@@ -46,6 +53,24 @@ const useCartStore = create((set, get) => ({
       return { items: [...state.items, { ...product, qty }] };
     }),
 
+  // Tambah/ubah item beserta add-on terpilih (dipakai ProductDetailModal).
+  // Mengganti seluruh konfigurasi add-on untuk product.id ini.
+  setItemWithAddons: (product, selectedAddons, qty) =>
+    set((state) => {
+      if (qty <= 0) {
+        return { items: state.items.filter((i) => i.id !== product.id) };
+      }
+      const existing = state.items.find((i) => i.id === product.id);
+      if (existing) {
+        return {
+          items: state.items.map((i) =>
+            i.id === product.id ? { ...i, ...product, selectedAddons, qty } : i
+          ),
+        };
+      }
+      return { items: [...state.items, { ...product, selectedAddons, qty }] };
+    }),
+
   removeItem: (id) =>
     set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
 
@@ -56,10 +81,12 @@ const useCartStore = create((set, get) => ({
     return item ? item.qty : 0;
   },
 
+  getItem: (id) => get().items.find((i) => i.id === id) || null,
+
   getTotalItems: () => get().items.reduce((sum, i) => sum + i.qty, 0),
 
   getTotalPrice: () =>
-    get().items.reduce((sum, i) => sum + i.harga * i.qty, 0),
+    get().items.reduce((sum, i) => sum + itemUnitPrice(i) * i.qty, 0),
 }));
 
 export default useCartStore;

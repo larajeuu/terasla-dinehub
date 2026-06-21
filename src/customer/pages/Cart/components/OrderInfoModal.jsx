@@ -77,7 +77,13 @@ const OrderInfoModal = ({ open, onClose }) => {
         dining_table_code: tableCode,
         tipe_order: 'dine_in',
         metode_pembayaran_id: selectedMethod.id,
-        items: items.map((i) => ({ product_id: i.id, jumlah: i.qty })),
+        items: items.map((i) => ({
+          product_id: i.id,
+          jumlah: i.qty,
+          ...(i.selectedAddons?.length
+            ? { addon_ids: i.selectedAddons.map((a) => a.id) }
+            : {}),
+        })),
       });
       const charge = await chargePayment({
         id_pesanan: order.id,

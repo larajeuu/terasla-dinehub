@@ -1,11 +1,13 @@
-import useCartStore from '../../../../store/cartStore';
+import useCartStore, { itemUnitPrice } from '../../../../store/cartStore';
 import { formatRupiah } from '../../../../shared/utils/format';
 import { TrashIcon } from '../../../../shared/components/icons';
 import QtyControl from '../../../components/QtyControl';
 
 const CartItem = ({ item }) => {
   const removeItem = useCartStore((s) => s.removeItem);
-  const subtotal = item.harga * item.qty;
+  const unitPrice = itemUnitPrice(item);
+  const subtotal = unitPrice * item.qty;
+  const addonLabel = item.selectedAddons?.map((a) => a.nama || a.name).join(', ');
 
   return (
     <div
@@ -43,6 +45,15 @@ const CartItem = ({ item }) => {
             >
               {item.merchant_nama}
             </p>
+            {addonLabel && (
+              <p
+                className="text-[11px] truncate"
+                style={{ color: '#C8961A', fontFamily: "'Inter', sans-serif" }}
+                title={addonLabel}
+              >
+                + {addonLabel}
+              </p>
+            )}
           </div>
           <button
             onClick={() => removeItem(item.id)}
@@ -59,7 +70,7 @@ const CartItem = ({ item }) => {
               className="text-[11px] text-gray-400 leading-none"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              {item.qty} x {formatRupiah(item.harga)}
+              {item.qty} x {formatRupiah(unitPrice)}
             </p>
             <p
               className="text-sm font-bold leading-tight mt-1 tabular-nums"

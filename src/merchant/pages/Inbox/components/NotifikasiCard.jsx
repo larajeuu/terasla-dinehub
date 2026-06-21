@@ -91,16 +91,23 @@ const CardPesanan = ({ notif }) => {
 const CardPencairan = ({ notif }) => (
   <CardBase icon={<IconPencairan />} notif={notif}>
     <div className="flex items-center justify-between gap-2">
-      <p className="text-xs font-medium text-gray-400">Pencairan Dana</p>
+      <p
+        className="text-sm text-gray-800 truncate"
+        style={{ fontWeight: notif.read ? 500 : 700 }}
+      >
+        {notif.title || 'Pencairan Dana'}
+      </p>
       {!notif.read && <UnreadDot />}
     </div>
-    <p
-      className="text-base mt-0.5"
-      style={{ color: '#16a34a', fontWeight: notif.read ? 600 : 800 }}
-    >
-      {formatRupiah(notif.amount)}
-    </p>
-    <p className="text-xs text-gray-500 mt-0.5">{notif.description}</p>
+    {notif.amount > 0 && (
+      <p
+        className="text-base mt-0.5"
+        style={{ color: '#16a34a', fontWeight: notif.read ? 600 : 800 }}
+      >
+        {formatRupiah(notif.amount)}
+      </p>
+    )}
+    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notif.description}</p>
   </CardBase>
 );
 

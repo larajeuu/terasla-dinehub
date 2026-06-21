@@ -206,44 +206,42 @@ const DetailPesanan = ({ notif }) => {
   );
 };
 
-const DetailPencairan = ({ notif }) => (
-  <>
-    <Hero
-      bg="#f0fdf4"
-      color="#16a34a"
-      Icon={IconMoney}
-      title="Pencairan Dana"
-      timeAgo={notif.timeAgo}
-      time={notif.time}
-    />
+const DetailPencairan = ({ notif }) => {
+  // Warna hero menyesuaikan jenis pergerakan (ditolak = merah, lainnya = hijau).
+  const ditolak = /tolak|ditolak|gagal/i.test(notif.title || '');
+  const color = ditolak ? '#dc2626' : '#16a34a';
+  const bg = ditolak ? '#fef2f2' : '#f0fdf4';
+  return (
+    <>
+      <Hero
+        bg={bg}
+        color={color}
+        Icon={IconMoney}
+        title={notif.title || 'Pencairan Dana'}
+        timeAgo={notif.timeAgo}
+        time={notif.time}
+      />
 
-    <BodyCard>
-      <p className="text-2xl font-bold text-center" style={{ color: '#16a34a', fontFamily: "'Poppins', sans-serif" }}>
-        {formatRupiah(notif.amount)}
-      </p>
-      {notif.description && (
-        <p className="text-sm text-gray-500 text-center mt-2" style={{ fontFamily: "'Inter', sans-serif" }}>
-          {notif.description}
-        </p>
-      )}
-    </BodyCard>
+      <BodyCard>
+        {notif.amount > 0 && (
+          <p className="text-2xl font-bold text-center" style={{ color, fontFamily: "'Poppins', sans-serif" }}>
+            {formatRupiah(notif.amount)}
+          </p>
+        )}
+        {notif.description && (
+          <p className="text-sm text-gray-500 text-center mt-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+            {notif.description}
+          </p>
+        )}
+      </BodyCard>
 
-    <InfoCard>
-      <InfoRow label="Nominal" value={formatRupiah(notif.amount)} />
-      {notif.bank && notif.bank !== '-' && (
-        <InfoRow label="Bank Tujuan" value={notif.bank} />
-      )}
-      {notif.accountName && notif.accountName !== '-' && (
-        <InfoRow label="Atas Nama" value={notif.accountName} />
-      )}
-      {notif.accountNumber && notif.accountNumber !== '-' && (
-        <InfoRow label="No. Rekening" value={notif.accountNumber} />
-      )}
-      <InfoRow label="Status" badge={{ label: 'Berhasil', color: '#16a34a', bg: '#f0fdf4' }} />
-      <InfoRow label="Waktu" value={`${notif.timeAgo} · ${notif.time}`} />
-    </InfoCard>
-  </>
-);
+      <InfoCard>
+        {notif.amount > 0 && <InfoRow label="Nominal" value={formatRupiah(notif.amount)} />}
+        <InfoRow label="Waktu" value={`${notif.timeAgo} · ${notif.time}`} />
+      </InfoCard>
+    </>
+  );
+};
 
 const DetailUlasan = ({ notif }) => (
   <>

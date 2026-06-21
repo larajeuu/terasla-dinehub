@@ -10,6 +10,7 @@ import {
   SystemIcon,
   LogIcon,
   LogoutIcon,
+  BellIcon,
 } from './icons';
 
 const NAV_ITEMS = [
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
   { to: '/admin/transactions', label: 'Transaksi', icon: TransactionIcon },
   { to: '/admin/merchants', label: 'Merchant', icon: MerchantIcon },
   { to: '/admin/withdrawals', label: 'Withdrawal', icon: WithdrawIcon },
+  { to: '/admin/announcements', label: 'Pengumuman', icon: BellIcon },
   { to: '/admin/customers', label: 'Customer', icon: UsersIcon },
   { to: '/admin/reports', label: 'Laporan', icon: ReportIcon },
   { to: '/admin/system', label: 'Sistem', icon: SystemIcon },

@@ -67,8 +67,9 @@ export const rejectWithdrawal = async (id, note) => {
     await delay(150);
     return { id, status: WITHDRAWAL_STATUS.REJECTED, note };
   }
-  const response = await api.put(`/withdrawals/${id}/reject`, null, {
-    params: note ? { note } : undefined,
+  // Kirim alasan lewat body JSON (backend juga menerima query param sebagai fallback).
+  const response = await api.put(`/withdrawals/${id}/reject`, {
+    note: note || null,
   });
   return mapWithdrawal(response.data);
 };

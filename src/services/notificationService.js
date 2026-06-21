@@ -64,24 +64,34 @@ export const fetchPesananNotifications = (merchantId) =>
     }));
   });
 
-// ── Pencairan — dari /withdrawals ────────────────────────────────────────────
+// ── Pencairan — notifikasi setiap pergerakan withdrawal ─────────────────────
+// Backend membuat satu notifikasi (tipe 'pencairan') pada SETIAP pergerakan:
+// pengajuan, disetujui, dan ditolak. Tiap pergerakan ditampilkan di sini.
+
+const parseAmount = (text) => {
+  if (!text) return 0;
+  const m = String(text).match(/Rp\s*([\d.,]+)/i);
+  if (!m) return 0;
+  // "10.000" / "1.250.000" → buang pemisah ribuan.
+  return Number(m[1].replace(/[.,]/g, '')) || 0;
+};
 
 export const fetchPencairanNotifications = (merchantId) =>
   safeGet(async () => {
-    const res = await api.get('/withdrawals', { params: { merchant_id: merchantId } });
-    return res.data.map((w) => ({
-      id: `pencairan-${w.id}`,
-      type: 'Pencairan',
-      amount: w.jumlah ?? w.amount ?? 0,
-      description: w.keterangan || `Dana ditransfer ke rekening ${w.rekening || '-'}`.trim(),
-      bank: w.bank || '-',
-      accountNumber: w.account_number || w.rekening || '-',
-      accountName: w.account_name || '-',
-      time: parseTime(w.created_at),
-      timeAgo: parseTimeAgo(w.created_at),
-      read: false,
-      createdAt: w.created_at,
-    }));
+    const res = await api.get(`/merchant-orders/notifications/${merchantId}`);
+    return res.data
+      .filter((a) => a.tipe === 'pencairan')
+      .map((a) => ({
+        id: `pencairan-${a.id}`,
+        type: 'Pencairan',
+        title: a.judul || 'Pencairan Dana',
+        amount: parseAmount(a.pesan || a.judul),
+        description: a.pesan || '',
+        time: parseTime(a.created_at),
+        timeAgo: parseTimeAgo(a.created_at),
+        read: false,
+        createdAt: a.created_at,
+      }));
   });
 
 // ── Ulasan — dari /reviews ───────────────────────────────────────────────────
@@ -108,14 +118,9 @@ export const fetchPengumumanNotifications = (merchantId) =>
   safeGet(async () => {
     const res = await api.get(`/merchant-orders/notifications/${merchantId}`);
     return res.data
-      .filter((a) => {
-        if (a.tipe === 'penting' || a.prioritas === 'tinggi') return false;
-        // Buang notifikasi perubahan status pesanan — sudah tercakup di kartu Pesanan.
-        // Format backend: "ORD-XXXXX → status"
-        const desc = a.pesan || a.isi || a.body || a.message || '';
-        if (/ → /.test(desc)) return false;
-        return true;
-      })
+      // Hanya broadcast 'pengumuman' biasa dari admin. Penting → tab Penting,
+      // Pencairan → tab Pencairan, pergerakan order → tab Pesanan.
+      .filter((a) => a.tipe === 'pengumuman')
       .map((a) => ({
         id: `pengumuman-${a.id}`,
         type: 'Pengumuman',

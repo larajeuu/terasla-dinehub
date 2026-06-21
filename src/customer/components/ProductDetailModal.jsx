@@ -1,11 +1,41 @@
 import { useEffect, useState } from 'react';
 import { formatRupiah } from '../../shared/utils/format';
 import { CloseIcon } from '../../shared/components/icons';
+import useCartStore from '../../store/cartStore';
 import QtyControl from './QtyControl';
 
 const ProductDetailModal = ({ product, open, onClose }) => {
   const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
+
+  // ── Item tambahan (add-on) ──────────────────────────────────────────────
+  const setItemWithAddons = useCartStore((s) => s.setItemWithAddons);
+  const cartItem = useCartStore((s) => (product ? s.getItem(product.id) : null));
+  const addons = (product?.additionals || []).filter((a) => a.is_active !== false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [qty, setQty] = useState(1);
+
+  // Saat modal dibuka: pulihkan pilihan add-on & qty dari keranjang (bila ada).
+  useEffect(() => {
+    if (!open) return;
+    setSelectedIds(cartItem?.selectedAddons?.map((a) => a.id) || []);
+    setQty(cartItem?.qty || 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, product?.id]);
+
+  const toggleAddon = (id) =>
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+
+  const selectedAddons = addons.filter((a) => selectedIds.includes(a.id));
+  const unitPrice =
+    (product?.harga || 0) + selectedAddons.reduce((s, a) => s + (a.harga || 0), 0);
+
+  const handleAddToCart = () => {
+    setItemWithAddons(product, selectedAddons, qty);
+    onClose();
+  };
 
   // Mount/unmount with delay for slide-out animation
   useEffect(() => {
@@ -169,6 +199,62 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                 </span>
               </div>
             )}
+
+            {/* Item tambahan (add-on) */}
+            {addons.length > 0 && (
+              <div className="mt-5">
+                <h3
+                  className="text-xs font-semibold tracking-wider text-gray-400 uppercase mb-2"
+                  style={{ fontFamily: "'Poppins', sans-serif" }}
+                >
+                  Tambahan
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {addons.map((a) => {
+                    const checked = selectedIds.includes(a.id);
+                    return (
+                      <button
+                        key={a.id}
+                        onClick={() => toggleAddon(a.id)}
+                        className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border transition-colors text-left"
+                        style={{
+                          borderColor: checked ? '#1D3A27' : '#e5e7eb',
+                          background: checked ? '#f0fdf4' : 'white',
+                        }}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span
+                            className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
+                            style={{
+                              border: `1.5px solid ${checked ? '#1D3A27' : '#d1d5db'}`,
+                              background: checked ? '#1D3A27' : 'white',
+                            }}
+                          >
+                            {checked && (
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </span>
+                          <span
+                            className="text-sm text-gray-700 truncate"
+                            style={{ fontFamily: "'Inter', sans-serif" }}
+                          >
+                            {a.nama}
+                          </span>
+                        </div>
+                        <span
+                          className="text-sm font-semibold shrink-0"
+                          style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
+                        >
+                          + {formatRupiah(a.harga || 0)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -177,7 +263,47 @@ const ProductDetailModal = ({ product, open, onClose }) => {
           className="p-4 border-t bg-white"
           style={{ borderColor: '#f3f4f6' }}
         >
-          <QtyControl product={product} size="md" />
+          {addons.length > 0 ? (
+            <div className="flex items-center gap-3">
+              {/* Stepper qty */}
+              <div
+                className="flex items-center justify-between rounded-xl overflow-hidden shrink-0"
+                style={{ height: 44, border: '1.5px solid #1D3A27', width: 120 }}
+              >
+                <button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="flex items-center justify-center text-white h-full"
+                  style={{ width: 40, background: '#1D3A27' }}
+                  aria-label="Kurangi"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>
+                </button>
+                <span className="flex-1 text-center font-bold tabular-nums" style={{ color: '#1D3A27' }}>{qty}</span>
+                <button
+                  onClick={() => setQty((q) => Math.min(999, q + 1))}
+                  className="flex items-center justify-center text-white h-full"
+                  style={{ width: 40, background: '#1D3A27' }}
+                  aria-label="Tambah"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>
+                </button>
+              </div>
+              {/* Add to cart */}
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl text-white font-semibold transition-all active:scale-95"
+                style={{
+                  height: 44,
+                  background: 'linear-gradient(135deg, #2d5a3d 0%, #1D3A27 100%)',
+                  fontFamily: "'Poppins', sans-serif",
+                }}
+              >
+                {cartItem ? 'Perbarui' : 'Tambah'} · {formatRupiah(unitPrice * qty)}
+              </button>
+            </div>
+          ) : (
+            <QtyControl product={product} size="md" />
+          )}
         </div>
       </div>
     </div>

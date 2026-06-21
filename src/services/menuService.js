@@ -17,7 +17,23 @@ const mapProduct = (p) => ({
   image: p.foto || null,
   categoryId: p.category_id ?? null,
   categoryName: p.category?.nama_kategori ?? null,
+  addons: (p.additionals || []).map((a) => ({
+    id: a.id,
+    name: a.nama,
+    price: a.harga,
+    isActive: a.is_active !== false,
+  })),
 });
+
+// UI add-on (camelCase) → payload backend (snake_case).
+const mapAddonPayload = (addons) =>
+  (addons || [])
+    .filter((a) => (a.name || '').trim())
+    .map((a) => ({
+      nama: a.name.trim(),
+      harga: Number(a.price) || 0,
+      is_active: a.isActive !== false,
+    }));
 
 export const getMerchantMenus = async (merchantId) => {
   if (USE_DUMMY) {
@@ -77,6 +93,7 @@ export const createMenu = async (merchantId, data) => {
     stok: data.stock,
     merchant_id: merchantId,
     category_id: data.categoryId ?? null,
+    additionals: mapAddonPayload(data.addons),
   });
   let product = res.data;
 
@@ -103,13 +120,15 @@ export const updateMenu = async (id, data) => {
     });
   }
 
-  // 1) Update field produk (JSON).
+  // 1) Update field produk (JSON). Add-on hanya dikirim bila form menyertakannya
+  //    (mencegah penghapusan tak sengaja oleh pemanggil yang tak mengelola add-on).
   const res = await api.put(`/products/${id}`, {
     nama: data.name,
     deskripsi: data.description || '',
     harga: data.price,
     stok: data.stock,
     category_id: data.categoryId ?? null,
+    ...(data.addons !== undefined ? { additionals: mapAddonPayload(data.addons) } : {}),
   });
   let product = res.data;
 

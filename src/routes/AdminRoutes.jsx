@@ -7,6 +7,7 @@ import TransactionDetail from '../admin/pages/TransactionDetail';
 import Merchants from '../admin/pages/Merchants';
 import MerchantDetail from '../admin/pages/MerchantDetail';
 import Withdrawals from '../admin/pages/Withdrawals';
+import Announcements from '../admin/pages/Announcements';
 import Customers from '../admin/pages/Customers';
 import CustomerDetail from '../admin/pages/CustomerDetail';
 import Reports from '../admin/pages/Reports';
@@ -23,6 +24,7 @@ const AdminRoutes = () => (
       <Route path="/merchants" element={<Merchants />} />
       <Route path="/merchants/:merchantId" element={<MerchantDetail />} />
       <Route path="/withdrawals" element={<Withdrawals />} />
+      <Route path="/announcements" element={<Announcements />} />
       <Route path="/customers" element={<Customers />} />
       <Route path="/customers/:customerId" element={<CustomerDetail />} />
       <Route path="/reports" element={<Reports />} />
