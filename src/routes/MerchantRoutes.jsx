@@ -7,25 +7,27 @@ import Kontrol from '../merchant/pages/Kontrol';
 import PencairanDana from '../merchant/pages/Kontrol/Pencairan';
 import RiwayatKeuangan from '../merchant/pages/Kontrol/Riwayat';
 import Menu from '../merchant/pages/Menu';
-import Orders from '../merchant/pages/Orders';
 import Profile from '../merchant/pages/Profile';
 import Register from '../merchant/pages/Register';
 import Settings from '../merchant/pages/Settings';
+import ProtectedRoute from '../merchant/components/ProtectedRoute';
 
 const MerchantRoutes = () => (
   <Routes>
+    {/* Publik */}
     <Route path="/" element={<Login />} />
     <Route path="/login" element={<LoginForm />} />
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/inbox" element={<Inbox />} />
-    <Route path="/kontrol" element={<Kontrol />} />
-    <Route path="/kontrol/pencairan" element={<PencairanDana />} />
-    <Route path="/kontrol/riwayat" element={<RiwayatKeuangan />} />
-    <Route path="/menu" element={<Menu />} />
-    <Route path="/orders" element={<Orders />} />
-    <Route path="/profile" element={<Profile />} />
     <Route path="/register" element={<Register />} />
-    <Route path="/settings" element={<Settings />} />
+
+    {/* Butuh login merchant */}
+    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+    <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
+    <Route path="/kontrol" element={<ProtectedRoute><Kontrol /></ProtectedRoute>} />
+    <Route path="/kontrol/pencairan" element={<ProtectedRoute><PencairanDana /></ProtectedRoute>} />
+    <Route path="/kontrol/riwayat" element={<ProtectedRoute><RiwayatKeuangan /></ProtectedRoute>} />
+    <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} />
+    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+    <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
   </Routes>
 );
 

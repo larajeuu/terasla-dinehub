@@ -20,6 +20,7 @@ const mapMerchant = (m) => ({
   block: m.block,
   category: m.category,
   status: m.status,
+  isOpen: m.is_open ?? true,
   joinedAt: m.created_at,
   totalOrders: m.total_orders ?? 0,
   totalRevenue: m.total_revenue ?? 0,
@@ -68,19 +69,21 @@ export const updateMerchantStatus = async (id, status) => {
   return mapMerchant(response.data);
 };
 
-export const updateMerchantProfile = async (id, { nama, block, email, password }) => {
+// Update profil milik sendiri lewat endpoint khusus merchant (PUT /merchants/me).
+// Pakai token merchant, jadi tidak butuh id & tidak kena proteksi admin.
+export const updateMerchantProfile = async (_id, { nama, block, email, password }) => {
   const payload = { nama, block, email };
   if (password) payload.password = password;
-  const response = await api.put(`/merchants/${id}`, payload);
+  const response = await api.put('/merchants/me', payload);
   return mapMerchant(response.data);
 };
 
-// Toggle buka/tutup toko oleh merchant sendiri
-export const updateStoreOpenStatus = async (id, isOpen) => {
+// Toggle buka/tutup toko oleh merchant sendiri (PUT /merchants/me).
+export const updateStoreOpenStatus = async (_id, isOpen) => {
   if (USE_DUMMY) {
     await delay(200);
-    return { id, is_open: isOpen };
+    return { id: _id, is_open: isOpen };
   }
-  const response = await api.put(`/merchants/${id}`, { is_open: isOpen });
-  return response.data;
+  const response = await api.put('/merchants/me', { is_open: isOpen });
+  return mapMerchant(response.data);
 };

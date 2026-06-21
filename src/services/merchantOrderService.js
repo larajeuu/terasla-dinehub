@@ -103,3 +103,44 @@ export const updateMerchantOrderStatus = async (dbId, uiStatus) => {
   const res = await api.put(`/merchant-orders/${dbId}/status`, { status: backendStatus });
   return res.data;
 };
+
+// ── Dashboard Keuangan (Kontrol) ────────────────────────────────────────────────
+
+const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+
+// ISO datetime → label tanggal relatif untuk pengelompokan TransactionList.
+const dateLabel = (iso) => {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const sameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (sameDay(d, today)) return 'Hari ini';
+  if (sameDay(d, yesterday)) return 'Kemarin';
+  return `${d.getDate()} ${MONTHS_ID[d.getMonth()]}`;
+};
+
+export const getMerchantDashboard = async () => {
+  const res = await api.get('/merchant-orders/summary');
+  const d = res.data;
+  return {
+    saldo: d.saldo ?? 0,
+    isOpen: d.is_open ?? true,
+    tokoName: d.toko_nama || '-',
+    lokasi: d.lokasi || '',
+    totalOrder: d.total_order ?? 0,
+    totalPendapatan: d.total_pendapatan ?? 0,
+    produkTerlaris: d.produk_terlaris || '-',
+    weeklyData: (d.weekly_chart || []).map((p) => ({ day: p.day, value: p.value })),
+    transactions: (d.transactions || []).map((t) => ({
+      id: t.id,
+      name: t.name,
+      amount: t.amount,
+      type: t.type,
+      time: parseTime(t.created_at),
+      date: dateLabel(t.created_at),
+    })),
+  };
+};

@@ -17,7 +17,8 @@ export const ROUTES = {
   merchant: {
     dashboard: '/merchant',
     menu: '/merchant/menu',
-    orders: '/merchant/orders',
+    kontrol: '/merchant/kontrol',
+    withdrawal: '/merchant/withdrawal',
     profile: '/merchant/profile',
   },
   admin: {
