@@ -22,6 +22,7 @@ const isToday = (dateStr) => {
 
 const Dashboard = () => {
   const user = useAuthStore((s) => s.user);
+  const merchantId = user?.merchantId;
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,35 +32,41 @@ const Dashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const fetchOrders = useCallback(async () => {
-    if (!user?.merchantId) return;
+    if (!merchantId) return;
     try {
-      const data = await getMerchantOrders(user.merchantId);
+      const data = await getMerchantOrders(merchantId);
       setOrders(data);
     } catch (err) {
       console.error('Gagal memuat pesanan:', err);
     }
-  }, [user?.merchantId]);
+  }, [merchantId]);
 
   useEffect(() => {
-    if (!user?.merchantId) return;
-    setLoading(true);
-    fetchOrders().finally(() => setLoading(false));
-  }, [user?.merchantId, fetchOrders]);
+    if (!merchantId) return;
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      try { await fetchOrders(); }
+      finally { if (!cancelled) setLoading(false); }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [merchantId, fetchOrders]);
 
   // Polling ringan: pesanan yang baru dibayar (jadi 'terbuka') & pembatalan
   // otomatis akibat timeout muncul tanpa perlu reload manual.
   useEffect(() => {
-    if (!user?.merchantId) return undefined;
+    if (!merchantId) return undefined;
     const t = setInterval(fetchOrders, 10000);
     return () => clearInterval(t);
-  }, [user?.merchantId, fetchOrders]);
+  }, [merchantId, fetchOrders]);
 
   useEffect(() => {
-    if (!user?.merchantId) return;
-    getMerchantById(user.merchantId)
+    if (!merchantId) return;
+    getMerchantById(merchantId)
       .then((m) => setMerchantBlock(m.block || ''))
       .catch(() => {});
-  }, [user?.merchantId]);
+  }, [merchantId]);
 
   const updateStatus = async (id, newStatus) => {
     const order = orders.find((o) => o.id === id);

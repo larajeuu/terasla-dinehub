@@ -117,7 +117,7 @@ const PencairanDana = () => {
 
   const numericNominal = Number(String(nominal).replace(/\D/g, '')) || 0;
   const totalPotong = numericNominal + ADMIN_FEE;
-  const isValid = numericNominal >= MIN_WITHDRAWAL && numericNominal <= saldo && selectedIdx !== null;
+  const isValid = numericNominal >= MIN_WITHDRAWAL && numericNominal + ADMIN_FEE <= saldo && selectedIdx !== null;
 
   const handleNominalChange = (e) => {
     const raw = e.target.value.replace(/\D/g, '');
@@ -159,7 +159,7 @@ const PencairanDana = () => {
   const handleSubmit = async () => {
     if (!isValid) return;
     if (numericNominal < MIN_WITHDRAWAL) { setFormError(`Minimal pencairan ${formatRupiah(MIN_WITHDRAWAL)}.`); return; }
-    if (numericNominal > saldo) { setFormError('Nominal melebihi saldo tersedia.'); return; }
+    if (numericNominal + ADMIN_FEE > saldo) { setFormError(`Nominal + biaya admin (${formatRupiah(ADMIN_FEE)}) melebihi saldo tersedia.`); return; }
     const acc = accounts[selectedIdx];
     setLoading(true);
     setFormError('');

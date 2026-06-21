@@ -108,7 +108,14 @@ export const fetchPengumumanNotifications = (merchantId) =>
   safeGet(async () => {
     const res = await api.get(`/merchant-orders/notifications/${merchantId}`);
     return res.data
-      .filter((a) => a.tipe !== 'penting' && a.prioritas !== 'tinggi')
+      .filter((a) => {
+        if (a.tipe === 'penting' || a.prioritas === 'tinggi') return false;
+        // Buang notifikasi perubahan status pesanan — sudah tercakup di kartu Pesanan.
+        // Format backend: "ORD-XXXXX → status"
+        const desc = a.pesan || a.isi || a.body || a.message || '';
+        if (/ → /.test(desc)) return false;
+        return true;
+      })
       .map((a) => ({
         id: `pengumuman-${a.id}`,
         type: 'Pengumuman',
