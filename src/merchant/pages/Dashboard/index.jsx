@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import useAuthStore from '../../../store/authStore';
 import { getMerchantOrders, updateMerchantOrderStatus } from '../../../services/merchantOrderService';
 import { getMerchantById } from '../../../services/merchantService';
@@ -30,13 +30,21 @@ const Dashboard = () => {
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  const fetchOrders = useCallback(async () => {
+    if (!user?.merchantId) return;
+    try {
+      const data = await getMerchantOrders(user.merchantId);
+      setOrders(data);
+    } catch (err) {
+      console.error('Gagal memuat pesanan:', err);
+    }
+  }, [user?.merchantId]);
+
   useEffect(() => {
     if (!user?.merchantId) return;
-    getMerchantOrders(user.merchantId)
-      .then((data) => setOrders(data))
-      .catch((err) => console.error('Gagal memuat pesanan:', err))
-      .finally(() => setLoading(false));
-  }, [user?.merchantId]);
+    setLoading(true);
+    fetchOrders().finally(() => setLoading(false));
+  }, [user?.merchantId, fetchOrders]);
 
   // Polling ringan: pesanan yang baru dibayar (jadi 'terbuka') & pembatalan
   // otomatis akibat timeout muncul tanpa perlu reload manual.
