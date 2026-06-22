@@ -144,7 +144,12 @@ export default function Settings() {
           </div>
         ) : merchant ? (
           <div style={styles.profileCard}>
-            <div style={styles.profileCardAvatar}>🏪</div>
+            <div style={styles.profileCardAvatar}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z" stroke="#2d5a27" strokeWidth="1.8" strokeLinejoin="round"/>
+                <path d="M9 21v-8h6v8" stroke="#2d5a27" strokeWidth="1.8" strokeLinejoin="round"/>
+              </svg>
+            </div>
             <div>
               <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 700, color: '#1f2937', margin: '0 0 2px' }}>
                 {merchant.name || user?.name || '-'}
@@ -160,7 +165,12 @@ export default function Settings() {
           onClick={() => navigate('/merchant/profile')}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 20 }}>👤</span>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" stroke="#2d5a27" strokeWidth="1.8"/>
+                <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" stroke="#2d5a27" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+            </div>
             <div>
               <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, fontWeight: 600, color: '#1f2937', margin: '0 0 2px' }}>
                 Edit Profil

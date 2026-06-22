@@ -26,7 +26,7 @@ const Dashboard = () => {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [merchantBlock, setMerchantBlock] = useState('');
+  const [merchantInfo, setMerchantInfo] = useState({ block: '', category: '' });
   const [activeTab, setActiveTab] = useState('Semua');
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -64,7 +64,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!merchantId) return;
     getMerchantById(merchantId)
-      .then((m) => setMerchantBlock(m.block || ''))
+      .then((m) => setMerchantInfo({ block: m.block || '', category: m.category || '' }))
       .catch(() => {});
   }, [merchantId]);
 
@@ -105,7 +105,7 @@ const Dashboard = () => {
     .reduce((sum, o) => sum + (o.total || 0), 0);
 
   const tokoName = user?.name || 'Merchant';
-  const lokasi = merchantBlock || 'Blok Tenant';
+  const lokasi = [merchantInfo.block, merchantInfo.category].filter(Boolean).join(' · ') || 'Blok Tenant';
 
   return (
     <div className="min-h-screen flex flex-col pb-20" style={{ background: '#f5f5f5' }}>

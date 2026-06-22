@@ -134,6 +134,7 @@ const InputField = ({ label, icon, type = 'text', value, onChange, placeholder, 
 
 const ProfileActions = ({ onSave }) => {
   const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
   const [form, setForm] = useState({
     nama: '',
     lokasi: '',
@@ -178,6 +179,7 @@ const ProfileActions = ({ onSave }) => {
         email: form.email,
         password: form.password || undefined,
       });
+      updateUser({ name: form.nama });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       setForm((prev) => ({ ...prev, password: '', konfirmasi: '' }));
