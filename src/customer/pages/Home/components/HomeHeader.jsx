@@ -48,48 +48,46 @@ const HomeHeader = () => {
         </div>
       </div>
 
-      {/* No. Meja — white pill for high contrast on dark header */}
-      <div
-        className="relative inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full z-10"
-        style={{
-          background: '#ffffff',
-          boxShadow: '0 4px 12px -2px rgba(0,0,0,0.25), 0 0 0 1px rgba(200,150,26,0.35)',
-        }}
-      >
-        {/* Icon badge */}
-        <span
-          className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-          style={{
-            background: 'linear-gradient(135deg, #d6a425 0%, #C8961A 100%)',
-            boxShadow: '0 2px 6px rgba(200,150,26,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
-          }}
-        >
-          <TableIcon size={14} color="white" />
-        </span>
-        <div className="text-left leading-none">
-          <span
-            className="block text-[9px] font-semibold tracking-[0.15em] uppercase"
-            style={{ color: '#9ca3af', fontFamily: "'Poppins', sans-serif" }}
-          >
-            Meja
-          </span>
-          <span
-            className="block text-base font-extrabold mt-0.5 tabular-nums"
-            style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif", lineHeight: 1 }}
-          >
-            {tableLabel || '—'}
-          </span>
-        </div>
-      </div>
-
-      {/* Right: indicator dot (matches gold accent if cart has items) */}
-      <div className="relative z-10 w-8 flex justify-end">
+      {/* Right: No. Meja + cart indicator */}
+      <div className="relative z-10 flex items-center gap-2">
         {totalItems > 0 && (
           <span
-            className="block w-2 h-2 rounded-full animate-pulse"
+            className="block w-2 h-2 rounded-full animate-pulse shrink-0"
             style={{ background: '#C8961A', boxShadow: '0 0 8px rgba(200,150,26,0.7)' }}
           />
         )}
+        {/* No. Meja — white pill for high contrast on dark header */}
+        <div
+          className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full"
+          style={{
+            background: '#ffffff',
+            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.25), 0 0 0 1px rgba(200,150,26,0.35)',
+          }}
+        >
+          <span
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, #d6a425 0%, #C8961A 100%)',
+              boxShadow: '0 2px 6px rgba(200,150,26,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
+            }}
+          >
+            <TableIcon size={14} color="white" />
+          </span>
+          <div className="text-left leading-none">
+            <span
+              className="block text-[9px] font-semibold tracking-[0.15em] uppercase"
+              style={{ color: '#9ca3af', fontFamily: "'Poppins', sans-serif" }}
+            >
+              Meja
+            </span>
+            <span
+              className="block text-base font-extrabold mt-0.5 tabular-nums"
+              style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif", lineHeight: 1 }}
+            >
+              {tableLabel || '—'}
+            </span>
+          </div>
+        </div>
       </div>
     </header>
   );
