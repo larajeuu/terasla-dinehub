@@ -45,7 +45,7 @@ const RestaurantInfo = ({ tenant }) => {
         </div>
 
         <div className="w-24 h-24 shrink-0">
-          <TenantIllustration color={accentColor} />
+          <TenantIllustration color={accentColor} src={tenant.foto} />
         </div>
       </div>
 

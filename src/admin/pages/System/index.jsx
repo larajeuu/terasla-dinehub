@@ -13,7 +13,7 @@ import {
   getAllCategories, createCategory, updateCategory, deleteCategory,
 } from '../../../services/adminCategoryService';
 import {
-  getAllBanners, createBanner, updateBanner, deleteBanner,
+  getAllBanners, createBanner, updateBanner, deleteBanner, uploadBannerImage,
 } from '../../../services/bannerService';
 import {
   getPlatformSettings, updatePlatformSettings, calcServiceFee,
@@ -107,7 +107,7 @@ const System = () => {
     { name: 'title', label: 'Judul', required: true },
     { name: 'subtitle', label: 'Subjudul', type: 'textarea' },
     { name: 'badge', label: 'Badge', placeholder: 'mis. Promo Spesial!' },
-    { name: 'image_url', label: 'URL Gambar', placeholder: 'opsional — kosongkan untuk gaya gradien' },
+    { name: 'image_url', label: 'Gambar Banner', type: 'image', upload: uploadBannerImage, placeholder: 'Opsional — tanpa gambar memakai gaya gradien' },
   ];
   const addBanner = () => setModal({
     title: 'Tambah Banner', fields: BANNER_FIELDS, submitLabel: 'Tambah',

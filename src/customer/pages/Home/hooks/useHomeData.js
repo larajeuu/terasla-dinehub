@@ -5,13 +5,18 @@ import { getActiveBanners } from '../../../../services/bannerService';
 import { dummyBanners } from '../../../../data/dummy/banners';
 
 // Banner dari API memakai snake_case; HomeBanner memakai camelCase.
+// Fallback gradien & aksen bila banner (mis. dibuat admin) tidak punya gambar
+// maupun gaya gradien — supaya tampilan tetap rapi seperti dummy saat ini.
+const DEFAULT_BG = 'linear-gradient(135deg, #1a3325 0%, #2d5a3d 50%, #1a3325 100%)';
+const DEFAULT_ACCENT = '#C8961A';
+
 const mapBanner = (b) => ({
   id: b.id,
   badge: b.badge,
   title: b.title,
   subtitle: b.subtitle,
-  bg: b.bg,
-  accentColor: b.accent_color,
+  bg: b.bg || DEFAULT_BG,
+  accentColor: b.accent_color || DEFAULT_ACCENT,
   image: b.image_url || null,
 });
 

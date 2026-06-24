@@ -1,4 +1,21 @@
-const TenantIllustration = ({ color = '#1D3A27' }) => {
+import { useState } from 'react';
+
+const TenantIllustration = ({ color = '#1D3A27', src }) => {
+  const [imgError, setImgError] = useState(false);
+
+  // Tampilkan foto merchant bila ada & berhasil dimuat; jika tidak ada / gagal,
+  // jatuh ke ilustrasi dummy di bawah.
+  if (src && !imgError) {
+    return (
+      <img
+        src={src}
+        alt=""
+        onError={() => setImgError(true)}
+        className="w-full h-full rounded-xl object-cover"
+      />
+    );
+  }
+
   return (
     <div
       className="relative w-full h-full rounded-xl flex items-center justify-center overflow-hidden"
