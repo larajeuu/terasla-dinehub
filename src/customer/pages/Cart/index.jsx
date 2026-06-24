@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useCartStore from '../../../store/cartStore';
 import useTableStore from '../../../store/tableStore';
 import { formatRupiah } from '../../../shared/utils/format';
+import { getPublicFee, calcServiceFee } from '../../../services/platformSettingService';
 import CartHeader from './components/CartHeader';
 import CartItemList from './components/CartItemList';
 import PaymentMethodCard from './components/PaymentMethodCard';
@@ -17,6 +18,14 @@ const Cart = () => {
   const tableCode = useTableStore((s) => s.code);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [scanModalOpen, setScanModalOpen] = useState(false);
+  const [fee, setFee] = useState({ fee_rate: 0, fee_fixed: 0, is_active: false });
+
+  useEffect(() => {
+    getPublicFee().then(setFee).catch(() => {});
+  }, []);
+
+  const serviceFee = calcServiceFee(totalPrice, fee);
+  const grandTotal = totalPrice + serviceFee;
 
   const isEmpty = items.length === 0;
 
@@ -45,7 +54,7 @@ const Cart = () => {
             <PaymentMethodCard />
           </div>
 
-          <CartSummary totalItems={totalItems} subtotal={totalPrice} />
+          <CartSummary totalItems={totalItems} subtotal={totalPrice} serviceFee={serviceFee} />
         </>
       )}
 
@@ -79,7 +88,7 @@ const Cart = () => {
                 className="text-base font-bold leading-none tabular-nums"
                 style={{ fontFamily: "'Poppins', sans-serif" }}
               >
-                {formatRupiah(totalPrice)}
+                {formatRupiah(grandTotal)}
               </p>
             </div>
             <span

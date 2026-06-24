@@ -106,30 +106,36 @@ export const createWithdrawal = async ({ amount, bank, account_number, account_n
   return response.data;
 };
 
-// ── localStorage bank accounts (per merchantId) ───────────────────────────────
+// ── Rekening bank tersimpan (persisten di backend, per merchant via token) ─────
+// Sebelumnya hanya di localStorage (hilang bila ganti device/clear browser).
+// Endpoint memakai token merchant → tidak perlu merchantId.
 
-const bankKey = (merchantId) => `bank_accounts_${merchantId}`;
+const mapBankAccount = (a) => ({
+  id: a.id,
+  bank: a.bank,
+  account_number: a.account_number,
+  account_name: a.account_name,
+});
 
-export const getBankAccounts = (merchantId) => {
-  try { return JSON.parse(localStorage.getItem(bankKey(merchantId))) || []; }
-  catch { return []; }
-};
-
-export const saveBankAccount = (merchantId, account) => {
-  const accounts = getBankAccounts(merchantId);
-  const exists = accounts.some(
-    (a) => a.bank === account.bank && a.account_number === account.account_number
-  );
-  if (!exists) {
-    accounts.push(account);
-    localStorage.setItem(bankKey(merchantId), JSON.stringify(accounts));
+export const getBankAccounts = async () => {
+  try {
+    const res = await api.get('/withdrawals/bank-accounts');
+    return res.data.map(mapBankAccount);
+  } catch {
+    return [];
   }
-  return getBankAccounts(merchantId);
 };
 
-export const deleteBankAccount = (merchantId, index) => {
-  const accounts = getBankAccounts(merchantId);
-  accounts.splice(index, 1);
-  localStorage.setItem(bankKey(merchantId), JSON.stringify(accounts));
-  return accounts;
+export const saveBankAccount = async (account) => {
+  const res = await api.post('/withdrawals/bank-accounts', {
+    bank: account.bank,
+    account_number: account.account_number,
+    account_name: account.account_name,
+  });
+  return mapBankAccount(res.data);
+};
+
+export const deleteBankAccount = async (accountId) => {
+  await api.delete(`/withdrawals/bank-accounts/${accountId}`);
+  return true;
 };

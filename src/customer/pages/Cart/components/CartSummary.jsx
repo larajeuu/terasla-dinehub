@@ -20,7 +20,8 @@ const Row = ({ label, value, muted }) => (
   </div>
 );
 
-const CartSummary = ({ totalItems, subtotal }) => {
+const CartSummary = ({ totalItems, subtotal, serviceFee = 0 }) => {
+  const total = subtotal + serviceFee;
   return (
     <div
       className="mx-4 mt-4 p-4 bg-white rounded-2xl"
@@ -38,7 +39,7 @@ const CartSummary = ({ totalItems, subtotal }) => {
 
       <div className="space-y-1.5">
         <Row label={`Subtotal (${totalItems} item)`} value={formatRupiah(subtotal)} />
-        <Row label="Biaya layanan" value="Rp 0" muted />
+        <Row label="Biaya layanan" value={serviceFee > 0 ? formatRupiah(serviceFee) : 'Gratis'} muted />
       </div>
 
       <div
@@ -57,7 +58,7 @@ const CartSummary = ({ totalItems, subtotal }) => {
           className="text-lg font-extrabold tabular-nums"
           style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
         >
-          {formatRupiah(subtotal)}
+          {formatRupiah(total)}
         </span>
       </div>
     </div>

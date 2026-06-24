@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import useAuthStore from '../../../../store/authStore';
-import { getMerchantById, updateMerchantProfile } from '../../../../services/merchantService';
+import {
+  getMerchantById,
+  updateMerchantProfile,
+  uploadMerchantLogo,
+} from '../../../../services/merchantService';
+import ProfileIllustration from './ProfileIllustration';
 
 const UserIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -139,9 +144,16 @@ const ProfileActions = ({ onSave }) => {
     nama: '',
     lokasi: '',
     email: '',
+    deskripsi: '',
+    alamat: '',
     password: '',
     konfirmasi: '',
   });
+
+  // Foto: `photoFile` = File baru yang dipilih (di-upload saat Simpan),
+  // `photoPreview` = URL untuk ditampilkan (preview lokal atau foto tersimpan).
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -156,13 +168,21 @@ const ProfileActions = ({ onSave }) => {
           nama: data.name || '',
           lokasi: data.block || '',
           email: data.email || '',
+          deskripsi: data.deskripsi || '',
+          alamat: data.alamat || '',
         }));
+        if (data.foto) setPhotoPreview(data.foto);
       })
       .catch(() => {});
   }, [user?.merchantId]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handlePhotoChange = (file) => {
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
   };
 
   const handleSave = async () => {
@@ -173,13 +193,26 @@ const ProfileActions = ({ onSave }) => {
     setError(null);
     setLoading(true);
     try {
+      // 1) Upload foto dulu (bila ada yang baru dipilih) → backend update merchant.foto.
+      let fotoUrl = null;
+      if (photoFile) {
+        const att = await uploadMerchantLogo(photoFile);
+        fotoUrl = att?.url || null;
+      }
+      // 2) Simpan field teks (partial update).
       await updateMerchantProfile(user.merchantId, {
         nama: form.nama,
         block: form.lokasi,
         email: form.email,
+        deskripsi: form.deskripsi,
+        alamat: form.alamat,
         password: form.password || undefined,
       });
-      updateUser({ name: form.nama });
+      updateUser({ name: form.nama, ...(fotoUrl ? { foto: fotoUrl } : {}) });
+      if (fotoUrl) {
+        setPhotoPreview(fotoUrl);
+        setPhotoFile(null);
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       setForm((prev) => ({ ...prev, password: '', konfirmasi: '' }));
@@ -193,6 +226,8 @@ const ProfileActions = ({ onSave }) => {
 
   return (
     <div className="px-5 pb-7">
+      <ProfileIllustration photoSrc={photoPreview} onPhotoChange={handlePhotoChange} />
+
       <div className="border-t border-gray-100 mb-4" />
 
       <InputField
@@ -221,6 +256,24 @@ const ProfileActions = ({ onSave }) => {
         onChange={handleChange('email')}
         placeholder="Email untuk notifikasi & login akun"
         hint="Email untuk notifikasi & login akun"
+      />
+
+      <InputField
+        label="Alamat Tenant"
+        icon={<MapPinIcon />}
+        value={form.alamat}
+        onChange={handleChange('alamat')}
+        placeholder="Alamat lengkap tenant"
+        hint="Alamat yang tampil di halaman tenant untuk pelanggan"
+      />
+
+      <InputField
+        label="Deskripsi Tenant"
+        icon={<UserIcon />}
+        value={form.deskripsi}
+        onChange={handleChange('deskripsi')}
+        placeholder="Ceritakan tentang tenant kamu"
+        hint="Deskripsi singkat yang tampil ke pelanggan"
       />
 
       <label

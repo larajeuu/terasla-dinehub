@@ -27,6 +27,11 @@ const mapDashboard = (data) => ({
   newCustomersToday:          data.new_customers_today,
   pendingWithdrawals:         data.pending_withdrawals,
   pendingWithdrawalAmount:    data.pending_withdrawal_amount,
+  platformRevenueToday:       data.platform_revenue_today ?? 0,
+  platformRevenueTotal:       data.platform_revenue_total ?? 0,
+  platformFeeRate:            data.platform_fee_rate ?? 0,
+  platformFeeFixed:           data.platform_fee_fixed ?? 0,
+  platformFeeActive:          data.platform_fee_active ?? false,
   revenueChart: (data.transaksi_chart || []).map((p) => ({
     date: chartLabel(p.date),
     revenue: p.total,
@@ -67,6 +72,11 @@ export const getDashboard = async () => {
       newCustomersToday:          s.newCustomersToday,
       pendingWithdrawals:         s.pendingWithdrawals,
       pendingWithdrawalAmount:    s.pendingWithdrawalAmount,
+      platformRevenueToday:       Math.round((s.revenueToday || 0) * 0.05),
+      platformRevenueTotal:       Math.round((s.revenueToday || 0) * 0.5),
+      platformFeeRate:            5,
+      platformFeeFixed:           1000,
+      platformFeeActive:          true,
       revenueChart: dummyRevenueChart.map((p) => ({ date: p.date, revenue: p.revenue })),
       topTenants: dummyTopTenants,
       recentTransactions: dummyAdminTransactions.slice(0, 5).map((tx) => ({

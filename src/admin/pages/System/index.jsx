@@ -15,12 +15,17 @@ import {
 import {
   getAllBanners, createBanner, updateBanner, deleteBanner,
 } from '../../../services/bannerService';
+import {
+  getPlatformSettings, updatePlatformSettings, calcServiceFee,
+} from '../../../services/platformSettingService';
+import { formatRupiah } from '../../../shared/utils/format';
 
 const TABS = [
   { id: 'banner', label: 'Banner Promo' },
   { id: 'payment', label: 'Metode Pembayaran' },
   { id: 'qr', label: 'QR Meja' },
   { id: 'category', label: 'Kategori Produk' },
+  { id: 'revenue', label: 'Biaya Layanan' },
 ];
 
 const apiError = (err, fallback) =>
@@ -46,6 +51,9 @@ const System = () => {
   const [payments, setPayments] = useState([]);
   const [tables, setTables] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [revenue, setRevenue] = useState(null);
+  const [revenueDraft, setRevenueDraft] = useState({ fee_rate: 0, fee_fixed: 0, is_active: true });
+  const [savingRevenue, setSavingRevenue] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modal, setModal] = useState(null); // konfigurasi FormModal aktif
@@ -54,22 +62,43 @@ const System = () => {
     try {
       setLoading(true);
       setError(null);
-      const [b, p, t, c] = await Promise.all([
+      const [b, p, t, c, r] = await Promise.all([
         getAllBanners(),
         getPaymentMethods(),
         getDiningTables(),
         getAllCategories(),
+        getPlatformSettings(),
       ]);
       setBanners(b);
       setPayments(p);
       setTables(t);
       setCategories(c);
+      setRevenue(r);
+      setRevenueDraft({ fee_rate: r.fee_rate, fee_fixed: r.fee_fixed, is_active: r.is_active });
     } catch (err) {
       setError(err?.response?.data?.detail || 'Gagal memuat data pengaturan');
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const saveRevenue = async () => {
+    try {
+      setSavingRevenue(true);
+      const updated = await updatePlatformSettings({
+        fee_rate: parseFloat(revenueDraft.fee_rate) || 0,
+        fee_fixed: parseFloat(revenueDraft.fee_fixed) || 0,
+        is_active: revenueDraft.is_active,
+      });
+      setRevenue(updated);
+      setRevenueDraft({ fee_rate: updated.fee_rate, fee_fixed: updated.fee_fixed, is_active: updated.is_active });
+      alert('Biaya layanan berhasil disimpan');
+    } catch (err) {
+      apiError(err, 'Gagal menyimpan biaya layanan');
+    } finally {
+      setSavingRevenue(false);
+    }
+  };
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -357,6 +386,87 @@ const System = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Revenue / Biaya Layanan */}
+      {activeTab === 'revenue' && (
+        <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: '#e5e7eb', fontFamily: "'Inter', sans-serif" }}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-base font-bold" style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}>Biaya Layanan Platform</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Pendapatan platform per transaksi — dibebankan ke customer (ditambahkan ke total bayar)</p>
+            </div>
+            <Toggle big checked={revenueDraft.is_active} onChange={() => setRevenueDraft((d) => ({ ...d, is_active: !d.is_active }))} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Persentase (%)</label>
+              <input
+                type="number" step="0.1" min="0" max="100"
+                value={revenueDraft.fee_rate}
+                onChange={(e) => setRevenueDraft((d) => ({ ...d, fee_rate: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:border-green-600"
+                style={{ borderColor: '#e5e7eb' }}
+                placeholder="mis. 5"
+              />
+              <p className="text-[11px] text-gray-400 mt-1">Persen dari subtotal produk</p>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Nominal Tetap (Rp)</label>
+              <input
+                type="number" step="100" min="0"
+                value={revenueDraft.fee_fixed}
+                onChange={(e) => setRevenueDraft((d) => ({ ...d, fee_fixed: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:border-green-600"
+                style={{ borderColor: '#e5e7eb' }}
+                placeholder="mis. 1000"
+              />
+              <p className="text-[11px] text-gray-400 mt-1">Biaya tetap per transaksi</p>
+            </div>
+          </div>
+
+          {/* Pratinjau perhitungan */}
+          <div className="mt-5 p-4 rounded-xl max-w-xl" style={{ background: '#f9fafb', border: '1px solid #f1f5f9' }}>
+            <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-2">Simulasi (subtotal Rp 50.000)</p>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Biaya layanan</span>
+              <span className="font-bold tabular-nums" style={{ color: '#1D3A27' }}>
+                {formatRupiah(calcServiceFee(50000, {
+                  fee_rate: parseFloat(revenueDraft.fee_rate) || 0,
+                  fee_fixed: parseFloat(revenueDraft.fee_fixed) || 0,
+                  is_active: revenueDraft.is_active,
+                }))}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm mt-1">
+              <span className="text-gray-600">Total bayar customer</span>
+              <span className="font-bold tabular-nums" style={{ color: '#1D3A27' }}>
+                {formatRupiah(50000 + calcServiceFee(50000, {
+                  fee_rate: parseFloat(revenueDraft.fee_rate) || 0,
+                  fee_fixed: parseFloat(revenueDraft.fee_fixed) || 0,
+                  is_active: revenueDraft.is_active,
+                }))}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-5 flex items-center gap-3">
+            <button
+              onClick={saveRevenue}
+              disabled={savingRevenue}
+              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+              style={{ background: '#1D3A27' }}
+            >
+              {savingRevenue ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </button>
+            {revenue && (
+              <span className="text-[11px] text-gray-400">
+                Aktif sekarang: {revenue.is_active ? `${revenue.fee_rate}% + ${formatRupiah(revenue.fee_fixed)}` : 'Nonaktif'}
+              </span>
+            )}
+          </div>
         </div>
       )}
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import useAuthStore from '../../../../store/authStore';
 import {
   createWithdrawal,
   getMerchantBalance,
@@ -93,16 +92,11 @@ const ErrorModal = ({ message, onClose }) => (
 const PencairanDana = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const user = useAuthStore((s) => s.user);
-  const merchantId = user?.merchantId;
 
   const [saldo, setSaldo] = useState(state?.saldo ?? 0);
   const [nominal, setNominal] = useState('');
-  const [accounts, setAccounts] = useState(() => getBankAccounts(merchantId));
-  const [selectedIdx, setSelectedIdx] = useState(() => {
-    const saved = getBankAccounts(merchantId);
-    return saved.length > 0 ? 0 : null;
-  });
+  const [accounts, setAccounts] = useState([]);
+  const [selectedIdx, setSelectedIdx] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newAccount, setNewAccount] = useState({ bank: '', account_number: '', account_name: '' });
   const [loading, setLoading] = useState(false);
@@ -112,6 +106,12 @@ const PencairanDana = () => {
 
   useEffect(() => {
     getMerchantBalance().then(setSaldo).catch(() => {});
+    getBankAccounts()
+      .then((list) => {
+        setAccounts(list);
+        setSelectedIdx(list.length > 0 ? 0 : null);
+      })
+      .catch(() => {});
   }, []);
 
 
@@ -132,28 +132,41 @@ const PencairanDana = () => {
     setFormError('');
   };
 
-  const handleAddAccount = () => {
+  const handleAddAccount = async () => {
     const { bank, account_number, account_name } = newAccount;
     if (!bank.trim() || !account_number.trim() || !account_name.trim()) {
       setFormError('Lengkapi semua data rekening.');
       return;
     }
-    const updated = saveBankAccount(merchantId, {
-      bank: bank.trim(),
-      account_number: account_number.trim(),
-      account_name: account_name.trim(),
-    });
-    setAccounts(updated);
-    setSelectedIdx(updated.length - 1);
-    setNewAccount({ bank: '', account_number: '', account_name: '' });
-    setShowAddForm(false);
-    setFormError('');
+    try {
+      const saved = await saveBankAccount({
+        bank: bank.trim(),
+        account_number: account_number.trim(),
+        account_name: account_name.trim(),
+      });
+      const list = await getBankAccounts();
+      setAccounts(list);
+      const idx = list.findIndex((a) => a.id === saved.id);
+      setSelectedIdx(idx >= 0 ? idx : (list.length > 0 ? 0 : null));
+      setNewAccount({ bank: '', account_number: '', account_name: '' });
+      setShowAddForm(false);
+      setFormError('');
+    } catch {
+      setFormError('Gagal menyimpan rekening. Coba lagi.');
+    }
   };
 
-  const handleDeleteAccount = (idx) => {
-    const updated = deleteBankAccount(merchantId, idx);
-    setAccounts(updated);
-    setSelectedIdx(updated.length > 0 ? 0 : null);
+  const handleDeleteAccount = async (idx) => {
+    const acc = accounts[idx];
+    if (!acc) return;
+    try {
+      await deleteBankAccount(acc.id);
+      const list = await getBankAccounts();
+      setAccounts(list);
+      setSelectedIdx(list.length > 0 ? 0 : null);
+    } catch {
+      setErrorModal({ message: 'Gagal menghapus rekening. Coba lagi.' });
+    }
   };
 
   const handleSubmit = async () => {

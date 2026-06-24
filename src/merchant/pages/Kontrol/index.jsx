@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../../store/authStore';
 import { getMerchantBalance } from '../../../services/withdrawalService';
-import { getMerchantById } from '../../../services/merchantService';
-import { getMerchantOrders } from '../../../services/merchantOrderService';
+import { updateStoreOpenStatus } from '../../../services/merchantService';
+import { getMerchantDashboard } from '../../../services/merchantOrderService';
 import KeuanganHeader from './components/KeuanganHeader';
 import StoreStatusCard from './components/StoreStatusCard';
 import SalesSummary from './components/SalesSummary';
@@ -11,19 +11,20 @@ import SalesChart from './components/SalesChart';
 import TransactionList from './components/TransactionList';
 import BottomNavbar from '../../components/BottomNavbar';
 
-// Jam operasional otomatis: 08.00–22.00 weekday, 08.00–23.59 weekend
-const autoIsOpen = () => {
-  const now = new Date();
-  const day = now.getDay(); // 0 = Minggu, 6 = Sabtu
-  const totalMinutes = now.getHours() * 60 + now.getMinutes();
-  const openTime = 8 * 60;
-  const closeTime = (day === 0 || day === 6) ? 23 * 60 + 59 : 22 * 60;
-  return totalMinutes >= openTime && totalMinutes <= closeTime;
-};
-
 const formatLastUpdated = () => {
   const now = new Date();
   return now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+};
+
+const EMPTY_DASH = {
+  isOpen: true,
+  tokoName: '',
+  lokasi: '',
+  totalOrder: 0,
+  totalPendapatan: 0,
+  produkTerlaris: '-',
+  weeklyData: [],
+  transactions: [],
 };
 
 const KontrolPage = () => {
@@ -32,12 +33,14 @@ const KontrolPage = () => {
 
   const [saldo, setSaldo] = useState(0);
   const [lastUpdated, setLastUpdated] = useState('');
-  const [merchantInfo, setMerchantInfo] = useState({ nama: user?.name || '', block: '', category: '' });
-  const [orders, setOrders] = useState([]);
+  // Ringkasan dihitung di backend (/merchant-orders/summary) agar pesanan
+  // dibatalkan TIDAK ikut dihitung sebagai pendapatan/transaksi.
+  const [dash, setDash] = useState(EMPTY_DASH);
   const [loading, setLoading] = useState(true);
 
-  // Toggle buka/tutup: default dari jadwal otomatis, bisa di-override manual
-  const [isOpen, setIsOpen] = useState(autoIsOpen);
+  // Status buka/tutup toko diambil dari backend (merchant.is_open), bukan jadwal lokal.
+  const [isOpen, setIsOpen] = useState(true);
+  const [togglingOpen, setTogglingOpen] = useState(false);
 
   useEffect(() => {
     if (!user?.merchantId) return;
@@ -45,29 +48,22 @@ const KontrolPage = () => {
 
     const load = async () => {
       try {
-        const [balanceRes, merchantRes, ordersRes] = await Promise.allSettled([
+        const [balanceRes, dashRes] = await Promise.allSettled([
           getMerchantBalance(),
-          getMerchantById(user.merchantId),
-          getMerchantOrders(user.merchantId),
+          getMerchantDashboard(),
         ]);
         if (cancelled) return;
 
-        if (merchantRes.status === 'fulfilled') {
-          const m = merchantRes.value;
-          // Prioritaskan /tenant-balance/me, fallback ke merchant.balance
-          const saldoValue = balanceRes.status === 'fulfilled'
-            ? balanceRes.value
-            : (m?.balance ?? 0);
-          setSaldo(saldoValue);
+        if (dashRes.status === 'fulfilled') {
+          const d = dashRes.value;
+          setDash(d);
+          setIsOpen(d.isOpen);
+          // Saldo: utamakan /tenant-balance/me (saldo tersedia), fallback ke ringkasan.
+          setSaldo(balanceRes.status === 'fulfilled' ? balanceRes.value : (d.saldo ?? 0));
           setLastUpdated(formatLastUpdated());
-          setMerchantInfo({
-            nama: m?.name || user?.name || '',
-            block: m?.block || '',
-            category: m?.category || '',
-          });
-        }
-        if (ordersRes.status === 'fulfilled') {
-          setOrders(ordersRes.value);
+        } else if (balanceRes.status === 'fulfilled') {
+          setSaldo(balanceRes.value);
+          setLastUpdated(formatLastUpdated());
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -78,66 +74,20 @@ const KontrolPage = () => {
     return () => { cancelled = true; };
   }, [user?.merchantId]);
 
-  // Hitung ringkasan hari ini dari order
-  const todayOrders = orders.filter((o) => {
-    if (!o.date) return false;
-    const d = new Date(o.date);
-    const today = new Date();
-    return d.toDateString() === today.toDateString();
-  });
-
-  const totalOrder = todayOrders.length || orders.length;
-  const totalPendapatan = (todayOrders.length ? todayOrders : orders)
-    .reduce((sum, o) => sum + (o.total || 0), 0);
-
-  // Produk terlaris dari semua order (parse item strings seperti "2x Nasi Goreng")
-  const itemCount = {};
-  orders.forEach((o) => {
-    (o.items || []).forEach((item) => {
-      const name = String(item).replace(/^\d+x\s*/i, '').trim();
-      if (name) itemCount[name] = (itemCount[name] || 0) + 1;
-    });
-  });
-  const produkTerlaris = Object.entries(itemCount).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
-
-  // Chart: 7 hari terakhir dari orders
-  const weeklyData = (() => {
-    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-    const buckets = {};
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      buckets[d.toDateString()] = { day: days[d.getDay()], value: 0 };
+  // Toggle buka/tutup → persist ke backend (PUT /merchants/me). Optimistic + rollback.
+  const handleToggleOpen = async () => {
+    if (togglingOpen) return;
+    const next = !isOpen;
+    setIsOpen(next);
+    setTogglingOpen(true);
+    try {
+      await updateStoreOpenStatus(user.merchantId, next);
+    } catch {
+      setIsOpen(!next); // gagal → kembalikan
+    } finally {
+      setTogglingOpen(false);
     }
-    orders.forEach((o) => {
-      const key = o.date ? new Date(o.date).toDateString() : null;
-      if (key && buckets[key]) buckets[key].value += o.total || 0;
-    });
-    return Object.values(buckets);
-  })();
-
-  // Riwayat transaksi (masuk saja, dari orders) untuk preview di dashboard
-  const transactionData = orders.slice(0, 10).map((o) => ({
-    id: o.orderCode || o.id,
-    name: o.customerName || 'Pelanggan',
-    amount: o.total || 0,
-    type: 'masuk',
-    time: o.time || '-',
-    date: o.date
-      ? (() => {
-          const d = new Date(o.date);
-          const today = new Date();
-          const yesterday = new Date(today);
-          yesterday.setDate(yesterday.getDate() - 1);
-          if (d.toDateString() === today.toDateString()) return 'Hari ini';
-          if (d.toDateString() === yesterday.toDateString()) return 'Kemarin';
-          return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-        })()
-      : '-',
-  }));
-
-  const tokoName = merchantInfo.nama;
-  const lokasi = [merchantInfo.block, merchantInfo.category].filter(Boolean).join(' · ');
+  };
 
   return (
     <div className="min-h-screen flex flex-col pb-20" style={{ background: '#f5f5f5' }}>
@@ -149,19 +99,19 @@ const KontrolPage = () => {
 
       <div className="flex-1 px-4 pt-4 flex flex-col gap-4">
         <StoreStatusCard
-          tokoName={tokoName}
-          lokasi={lokasi}
+          tokoName={dash.tokoName || user?.name || ''}
+          lokasi={dash.lokasi}
           isOpen={isOpen}
-          onToggle={() => setIsOpen((prev) => !prev)}
+          onToggle={handleToggleOpen}
         />
         <SalesSummary
-          totalOrder={loading ? '-' : totalOrder}
-          totalPendapatan={loading ? 0 : totalPendapatan}
-          produkTerlaris={loading ? '-' : produkTerlaris}
+          totalOrder={loading ? '-' : dash.totalOrder}
+          totalPendapatan={loading ? 0 : dash.totalPendapatan}
+          produkTerlaris={loading ? '-' : dash.produkTerlaris}
         />
-        <SalesChart data={weeklyData} />
+        <SalesChart data={dash.weeklyData} />
         <TransactionList
-          transactions={transactionData}
+          transactions={dash.transactions}
           onLihatSemua={() => navigate('/merchant/kontrol/riwayat')}
         />
       </div>

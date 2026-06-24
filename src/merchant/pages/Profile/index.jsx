@@ -1,5 +1,4 @@
 import ProfileHeader from './components/ProfileHeader';
-import ProfileIllustration from './components/ProfileIllustration';
 import ProfileActions from './components/ProfileActions';
 
 const ProfilePage = () => {
@@ -7,7 +6,8 @@ const ProfilePage = () => {
     <div className="min-h-screen flex flex-col" style={{ background: '#f5f5f0' }}>
       <ProfileHeader />
       <div className="flex-1 px-4 pb-8">
-        <ProfileIllustration />
+        {/* ProfileActions merender foto (ProfileIllustration) + form sekaligus,
+            agar file foto yang dipilih ikut tersimpan saat menekan Simpan. */}
         <ProfileActions />
       </div>
     </div>

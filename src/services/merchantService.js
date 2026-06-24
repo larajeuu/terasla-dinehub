@@ -1,3 +1,4 @@
+import axios from 'axios';
 import api from './api';
 import { dummyAdminMerchants } from '../data/dummy/adminMerchants';
 
@@ -21,6 +22,7 @@ const mapMerchant = (m) => ({
   category: m.category,
   status: m.status,
   isOpen: m.is_open ?? true,
+  foto: m.foto || null,
   joinedAt: m.created_at,
   totalOrders: m.total_orders ?? 0,
   totalRevenue: m.total_revenue ?? 0,
@@ -71,11 +73,36 @@ export const updateMerchantStatus = async (id, status) => {
 
 // Update profil milik sendiri lewat endpoint khusus merchant (PUT /merchants/me).
 // Pakai token merchant, jadi tidak butuh id & tidak kena proteksi admin.
-export const updateMerchantProfile = async (_id, { nama, block, email, password }) => {
-  const payload = { nama, block, email };
+// Hanya field yang terdefinisi (bukan undefined) yang dikirim → partial update.
+export const updateMerchantProfile = async (
+  _id,
+  { nama, block, email, deskripsi, alamat, password },
+) => {
+  const payload = {};
+  if (nama !== undefined) payload.nama = nama;
+  if (block !== undefined) payload.block = block;
+  if (email !== undefined) payload.email = email;
+  if (deskripsi !== undefined) payload.deskripsi = deskripsi;
+  if (alamat !== undefined) payload.alamat = alamat;
   if (password) payload.password = password;
   const response = await api.put('/merchants/me', payload);
-  return mapMerchant(response.data);
+  return mapMerchantDetail(response.data);
+};
+
+// Upload/ganti logo (foto) merchant ke endpoint attachment (multipart).
+// Backend (POST /attachments/merchant/logo) menyimpan file lalu meng-update
+// kolom merchant.foto dan otomatis menghapus logo lama bila ada.
+// Sengaja pakai axios polos (bukan instance `api`) agar browser menyetel
+// header multipart/form-data; boundary=... sendiri (FormData tidak di-JSON-kan).
+export const uploadMerchantLogo = async (file) => {
+  const form = new FormData();
+  form.append('file', file);
+  const token = localStorage.getItem('token');
+  const base = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+  const res = await axios.post(`${base}/attachments/merchant/logo`, form, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return res.data; // { url, filename, ... }
 };
 
 // Toggle buka/tutup toko oleh merchant sendiri (PUT /merchants/me).

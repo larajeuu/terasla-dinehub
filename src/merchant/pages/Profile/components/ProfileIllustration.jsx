@@ -5,9 +5,10 @@ const ProfileIllustration = ({ photoSrc, onPhotoChange }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+    // Teruskan File mentah ke parent; parent yang membuat preview & meng-upload
+    // saat tombol "Simpan Perubahan" ditekan (bukan langsung di sini).
     if (file && onPhotoChange) {
-      const url = URL.createObjectURL(file);
-      onPhotoChange(url);
+      onPhotoChange(file);
     }
   };
 

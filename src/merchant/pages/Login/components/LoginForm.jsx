@@ -49,7 +49,7 @@ const LoginForm = () => {
         user: {
           id: response.user_id,
           name: response.nama,
-          identifier: response.email || response.no_hp,
+          identifier: response.email || '',
           role: response.role,
           merchantId: response.merchant_id,
           status: response.status,

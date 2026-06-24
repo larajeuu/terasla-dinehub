@@ -91,6 +91,7 @@ export const createMenu = async (merchantId, data) => {
     deskripsi: data.description || '',
     harga: data.price,
     stok: data.stock,
+    is_available: data.available !== undefined ? data.available : true,
     merchant_id: merchantId,
     category_id: data.categoryId ?? null,
     additionals: mapAddonPayload(data.addons),
@@ -128,6 +129,7 @@ export const updateMenu = async (id, data) => {
     harga: data.price,
     stok: data.stock,
     category_id: data.categoryId ?? null,
+    ...(data.available !== undefined ? { is_available: data.available } : {}),
     ...(data.addons !== undefined ? { additionals: mapAddonPayload(data.addons) } : {}),
   });
   let product = res.data;

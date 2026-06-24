@@ -46,17 +46,23 @@ const RiwayatKeuangan = () => {
           getMerchantWithdrawals(),
         ]);
 
-        const orderTrx = orders.map((o) => ({
-          id: o.orderCode || o.id,
-          name: o.customerName || 'Pelanggan',
-          amount: o.total || 0,
-          type: 'masuk',
-          category: 'Pesanan',
-          date: o.date,
-          dateLabel: formatDate(o.date),
-          time: formatTime(o.date),
-          status: null,
-        }));
+        const orderTrx = orders.map((o) => {
+          // Pesanan dibatalkan: dana dikembalikan ke pelanggan, jadi tidak
+          // menambah pendapatan. Nilainya tetap 0 di riwayat (bukan bertambah).
+          const isCancelled = o.status === 'Dibatalkan';
+          return {
+            id: o.orderCode || o.id,
+            name: o.customerName || 'Pelanggan',
+            amount: isCancelled ? 0 : (o.total || 0),
+            type: 'masuk',
+            category: 'Pesanan',
+            cancelled: isCancelled,
+            date: o.date,
+            dateLabel: formatDate(o.date),
+            time: formatTime(o.date),
+            status: null,
+          };
+        });
 
         const withdrawalTrx = withdrawals.map((w) => ({
           id: `WD-${w.id}`,
@@ -171,7 +177,11 @@ const RiwayatKeuangan = () => {
               </p>
               <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.05)', border: '1px solid #f3f4f6' }}>
                 {items.map((trx, idx) => {
-                  const statusInfo = trx.status ? WITHDRAWAL_STATUS_LABEL[trx.status] : null;
+                  const statusInfo = trx.status
+                    ? WITHDRAWAL_STATUS_LABEL[trx.status]
+                    : (trx.cancelled
+                        ? { label: 'Dibatalkan', color: '#dc2626', bg: '#fef2f2' }
+                        : null);
                   return (
                     <div
                       key={trx.id + idx}
@@ -180,10 +190,12 @@ const RiwayatKeuangan = () => {
                     >
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ background: trx.type === 'masuk' ? '#f0fdf4' : '#fef2f2' }}
+                        style={{ background: trx.cancelled ? '#f3f4f6' : (trx.type === 'masuk' ? '#f0fdf4' : '#fef2f2') }}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                          {trx.type === 'masuk' ? (
+                          {trx.cancelled ? (
+                            <path d="M18 6L6 18M6 6l12 12" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          ) : trx.type === 'masuk' ? (
                             <path d="M12 19V5M5 12l7-7 7 7" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           ) : (
                             <path d="M12 5v14M5 12l7 7 7-7" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -212,9 +224,9 @@ const RiwayatKeuangan = () => {
 
                       <p
                         className="text-sm font-bold shrink-0"
-                        style={{ color: trx.type === 'masuk' ? '#16a34a' : '#dc2626', fontFamily: "'Poppins', sans-serif" }}
+                        style={{ color: trx.cancelled ? '#9ca3af' : (trx.type === 'masuk' ? '#16a34a' : '#dc2626'), fontFamily: "'Poppins', sans-serif" }}
                       >
-                        {trx.type === 'masuk' ? '+' : '-'}{formatRupiah(trx.amount)}
+                        {trx.cancelled ? '' : (trx.type === 'masuk' ? '+' : '-')}{formatRupiah(trx.amount)}
                       </p>
                     </div>
                   );

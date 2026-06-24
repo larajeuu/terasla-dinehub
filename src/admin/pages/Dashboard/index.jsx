@@ -74,6 +74,17 @@ const Dashboard = () => {
           changeLabel={`vs kemarin ${formatCompactCurrency(s.transaksiYesterday)}`}
         />
         <StatCard
+          label="Pendapatan Platform Hari Ini"
+          value={formatCompactCurrency(s.platformRevenueToday)}
+          icon={RevenueIcon}
+          iconBg="#C8961A"
+          changeLabel={
+            s.platformFeeActive
+              ? `Biaya layanan ${s.platformFeeRate}% + ${formatCurrency(s.platformFeeFixed)} · total ${formatCompactCurrency(s.platformRevenueTotal)}`
+              : 'Biaya layanan nonaktif'
+          }
+        />
+        <StatCard
           label="Order Hari Ini"
           value={s.ordersToday}
           icon={ReceiptIcon}

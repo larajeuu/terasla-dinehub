@@ -51,6 +51,21 @@ const SuccessView = ({ charge, onHome, onSummary }) => (
         </p>
         <p className="text-[11px] text-gray-500 mt-0.5">Kami akan beri tahu saat pesananmu siap</p>
       </div>
+
+      <div className="flex items-start gap-2.5 rounded-2xl p-3 mt-3" style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0 mt-0.5">
+          <rect x="3" y="5" width="18" height="14" rx="2" stroke="#b45309" strokeWidth="1.8" />
+          <path d="M4 7l8 6 8-6" stroke="#b45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <div className="text-left">
+          <p className="text-xs font-semibold" style={{ color: '#92400e', fontFamily: "'Poppins', sans-serif" }}>
+            Cek email kamu
+          </p>
+          <p className="text-[11px] leading-snug mt-0.5" style={{ color: '#a16207' }}>
+            Detail pesanan kami kirim ke email. Jika tidak ada di kotak masuk, periksa juga folder <span className="font-semibold">Spam</span> atau <span className="font-semibold">Promosi</span>.
+          </p>
+        </div>
+      </div>
     </div>
 
     <div className="px-5 py-5 space-y-2">
