@@ -8,6 +8,7 @@ import KeuanganHeader from './components/KeuanganHeader';
 import StoreStatusCard from './components/StoreStatusCard';
 import SalesSummary from './components/SalesSummary';
 import SalesChart from './components/SalesChart';
+import SalesReportCard from './components/SalesReportCard';
 import TransactionList from './components/TransactionList';
 import BottomNavbar from '../../components/BottomNavbar';
 
@@ -110,6 +111,7 @@ const KontrolPage = () => {
           produkTerlaris={loading ? '-' : dash.produkTerlaris}
         />
         <SalesChart data={dash.weeklyData} />
+        <SalesReportCard />
         <TransactionList
           transactions={dash.transactions}
           onLihatSemua={() => navigate('/merchant/kontrol/riwayat')}

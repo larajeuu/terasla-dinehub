@@ -9,13 +9,13 @@ export const getPaymentMethods = async () => {
 };
 
 export const createPaymentMethod = async (payload) => {
-  // payload: { nama_metode, fee? }
+  // payload: { nama_metode }
   const res = await api.post('/payment-methods', payload);
   return res.data;
 };
 
 export const updatePaymentMethod = async (id, payload) => {
-  // payload: { nama_metode?, fee?, is_active? }
+  // payload: { nama_metode?, is_active? }
   const res = await api.patch(`/payment-methods/${id}`, payload);
   return res.data;
 };

@@ -168,6 +168,7 @@ const LoginForm = () => {
             <span
               className="text-xs font-medium cursor-pointer"
               style={{ color: '#1D3A27', fontFamily: "'Inter', sans-serif" }}
+              onClick={() => navigate('/merchant/forgot-password')}
             >
               Lupa kata sandi?
             </span>

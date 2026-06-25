@@ -45,7 +45,7 @@ const Payment = () => {
         .map((m) => ({
           id: m.id,
           label: m.nama_metode,
-          description: m.fee ? `Fee ${m.fee}` : 'Tanpa biaya tambahan',
+          description: 'Tanpa biaya tambahan',
           brand: brandFromName(m.nama_metode),
         }));
       setOptions(opts);

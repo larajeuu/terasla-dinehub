@@ -130,7 +130,6 @@ const System = () => {
   // ── Payment ─────────────────────────────────────────────────────────────
   const PAYMENT_FIELDS = [
     { name: 'nama_metode', label: 'Nama Metode', required: true },
-    { name: 'fee', label: 'Fee', placeholder: 'mis. 0.7% atau Rp 2.000' },
   ];
   const addPayment = () => setModal({
     title: 'Tambah Metode Pembayaran', fields: PAYMENT_FIELDS, submitLabel: 'Tambah',
@@ -288,7 +287,7 @@ const System = () => {
           <div className="p-5 flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold" style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}>Metode Pembayaran</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Aktifkan/nonaktifkan dan atur fee per metode</p>
+              <p className="text-xs text-gray-500 mt-0.5">Aktifkan/nonaktifkan metode pembayaran</p>
             </div>
             <button onClick={addPayment} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: '#C8961A' }}>
               <PlusIcon size={14} /> Tambah
@@ -302,7 +301,7 @@ const System = () => {
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-gray-800">{p.nama_metode}</div>
-                  <div className="text-[11px] text-gray-500">Fee: {p.fee || '—'}</div>
+                  <div className="text-[11px] text-gray-500">{p.is_active ? 'Aktif' : 'Nonaktif'}</div>
                 </div>
               </div>
               <Toggle big checked={p.is_active} onChange={() => togglePayment(p)} />

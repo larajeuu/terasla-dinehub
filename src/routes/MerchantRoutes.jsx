@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
 import Login from '../merchant/pages/Login';
 import LoginForm from '../merchant/pages/Login/components/LoginForm';
+import ForgotPassword from '../merchant/pages/ForgotPassword';
+import ResetPassword from '../merchant/pages/ResetPassword';
 import Dashboard from '../merchant/pages/Dashboard';
 import Inbox from '../merchant/pages/Inbox';
 import Kontrol from '../merchant/pages/Kontrol';
@@ -17,6 +19,8 @@ const MerchantRoutes = () => (
     {/* Publik */}
     <Route path="/" element={<Login />} />
     <Route path="/login" element={<LoginForm />} />
+    <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/register" element={<Register />} />
 
     {/* Butuh login merchant */}

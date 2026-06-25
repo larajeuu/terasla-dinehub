@@ -122,6 +122,29 @@ const dateLabel = (iso) => {
   return `${d.getDate()} ${MONTHS_ID[d.getMonth()]}`;
 };
 
+// Unduh laporan penjualan (Excel) untuk periode: 'weekly' | 'monthly' | 'yearly'.
+// Memicu download file .xlsx di browser.
+export const downloadSalesReport = async (period) => {
+  const res = await api.get('/merchant-orders/report', {
+    params: { period },
+    responseType: 'blob',
+  });
+
+  // Ambil nama file dari header bila tersedia, jika tidak pakai default.
+  const disposition = res.headers['content-disposition'] || '';
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  const filename = match ? match[1] : `laporan-penjualan-${period}.xlsx`;
+
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 export const getMerchantDashboard = async () => {
   const res = await api.get('/merchant-orders/summary');
   const d = res.data;
