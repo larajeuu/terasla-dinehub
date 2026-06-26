@@ -6,6 +6,7 @@ import {
   toggleMenuAvailability,
   updateMenu,
   createMenu,
+  deleteMenu,
 } from '../../../services/menuService';
 import MenuHeader from './components/MenuHeader';
 import MenuSearch from './components/MenuSearch';
@@ -76,6 +77,14 @@ const MenuPage = () => {
     setShowAdd(false);
   };
 
+  // Hapus produk. Dibiarkan throw agar MenuDetail bisa menampilkan pesan
+  // larangan (mis. produk sudah dipakai transaksi → sarankan nonaktifkan).
+  const handleDeleteMenu = async (id) => {
+    await deleteMenu(id);
+    setMenus((prev) => prev.filter((m) => m.id !== id));
+    setSelectedMenu(null);
+  };
+
   const filteredMenus = menus
     .filter((m) => {
       if (activeTab === 'Tersedia') return m.available;
@@ -96,6 +105,7 @@ const MenuPage = () => {
         menu={selectedMenu}
         onBack={() => setSelectedMenu(null)}
         onSave={handleUpdateMenu}
+        onDelete={handleDeleteMenu}
       />
     );
   }

@@ -146,6 +146,17 @@ export const updateMenu = async (id, data) => {
   return mapProduct(product);
 };
 
+// Hapus produk permanen. Backend menolak (HTTP 409) bila produk sudah pernah
+// dipakai dalam transaksi — pemanggil sebaiknya menyarankan nonaktifkan saja.
+export const deleteMenu = async (id) => {
+  if (USE_DUMMY) {
+    await delay(200);
+    return { message: 'Produk dihapus', id };
+  }
+  const res = await api.delete(`/products/${id}`);
+  return res.data;
+};
+
 // PUT karena backend tidak support PATCH pada /products/{id}
 export const toggleMenuAvailability = async (id, available, menuData) => {
   if (USE_DUMMY) {

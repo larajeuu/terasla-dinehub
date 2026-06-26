@@ -14,6 +14,7 @@ import {
   XIcon,
 } from '../../components/icons';
 import { getMerchantById, updateMerchantStatus } from '../../../services/merchantService';
+import { deleteProduct } from '../../../services/productService';
 import { getMerchantOrders } from '../../../services/merchantOrderService';
 import { getReviews } from '../../../services/reviewService';
 import { formatCurrency, formatDate, formatDateShort } from '../../utils/format';
@@ -28,6 +29,9 @@ const MerchantDetail = () => {
   const [updating, setUpdating] = useState(false);
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
+  // Feedback hapus produk: { type: 'blocked' | 'error' | 'ok', text }
+  const [productMsg, setProductMsg] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -62,6 +66,31 @@ const MerchantDetail = () => {
       setError('update');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleDeleteProduct = async (p) => {
+    if (!window.confirm(`Hapus produk "${p.name}" milik ${merchant?.name}?`)) return;
+    setDeletingId(p.id);
+    setProductMsg(null);
+    try {
+      await deleteProduct(p.id);
+      setMerchant((m) => ({ ...m, products: (m.products || []).filter((x) => x.id !== p.id) }));
+      setProductMsg({ type: 'ok', text: `Produk "${p.name}" berhasil dihapus.` });
+    } catch (err) {
+      const status = err?.response?.status;
+      const detail = err?.response?.data?.detail;
+      if (status === 409) {
+        // Produk sudah dipakai transaksi → tidak boleh dihapus, sarankan nonaktif.
+        setProductMsg({
+          type: 'blocked',
+          text: detail || `Produk "${p.name}" sudah dipakai transaksi sehingga tidak dapat dihapus. Sarankan merchant menonaktifkannya saja.`,
+        });
+      } else {
+        setProductMsg({ type: 'error', text: detail || 'Gagal menghapus produk.' });
+      }
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -193,6 +222,21 @@ const MerchantDetail = () => {
           <p className="text-xs text-gray-500 mt-0.5">{m.products?.length || 0} produk dari API backend</p>
         </div>
 
+        {productMsg && (
+          <div
+            className="mx-5 mt-4 rounded-xl px-4 py-3 text-sm"
+            style={
+              productMsg.type === 'ok'
+                ? { background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }
+                : productMsg.type === 'blocked'
+                ? { background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' }
+                : { background: '#fee2e2', color: '#b91c1c', border: '1px solid #fecaca' }
+            }
+          >
+            {productMsg.text}
+          </div>
+        )}
+
         {(!m.products || m.products.length === 0) ? (
           <div className="p-10 text-center text-gray-400 text-sm">Belum ada produk</div>
         ) : (
@@ -203,6 +247,7 @@ const MerchantDetail = () => {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Produk</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Harga</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Stok</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -222,6 +267,17 @@ const MerchantDetail = () => {
                       >
                         {p.stock > 0 ? `${p.stock} tersedia` : 'Habis'}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleDeleteProduct(p)}
+                        disabled={deletingId === p.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
+                        style={{ background: '#fff', color: '#dc2626', border: '1px solid #fecaca' }}
+                      >
+                        <XIcon size={13} />
+                        {deletingId === p.id ? 'Menghapus...' : 'Hapus'}
+                      </button>
                     </td>
                   </tr>
                 ))}

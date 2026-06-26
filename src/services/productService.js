@@ -38,3 +38,14 @@ export const getProductById = async (id) => {
   const response = await api.get(`/products/${id}`);
   return response.data;
 };
+
+// Hapus produk (admin / merchant pemilik). Backend menolak dengan HTTP 409
+// bila produk sudah pernah dipakai transaksi — tangani pesannya di pemanggil.
+export const deleteProduct = async (id) => {
+  if (USE_DUMMY) {
+    await delay(200);
+    return { message: 'Produk dihapus', id };
+  }
+  const response = await api.delete(`/products/${id}`);
+  return response.data;
+};
