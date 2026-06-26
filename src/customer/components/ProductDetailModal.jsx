@@ -31,8 +31,11 @@ const ProductDetailModal = ({ product, open, onClose }) => {
   const selectedAddons = addons.filter((a) => selectedIds.includes(a.id));
   const unitPrice =
     (product?.harga || 0) + selectedAddons.reduce((s, a) => s + (a.harga || 0), 0);
+  // Produk dinonaktifkan merchant (toggle "Habis") → tidak bisa dipesan.
+  const unavailable = product?.is_available === false;
 
   const handleAddToCart = () => {
+    if (unavailable) return;
     setItemWithAddons(product, selectedAddons, qty);
     onClose();
   };
@@ -263,7 +266,15 @@ const ProductDetailModal = ({ product, open, onClose }) => {
           className="p-4 border-t bg-white"
           style={{ borderColor: '#f3f4f6' }}
         >
-          {addons.length > 0 ? (
+          {unavailable ? (
+            <button
+              disabled
+              className="w-full inline-flex items-center justify-center rounded-xl font-semibold cursor-not-allowed"
+              style={{ height: 44, background: '#e5e7eb', color: '#9ca3af', fontFamily: "'Poppins', sans-serif" }}
+            >
+              Produk Tidak Tersedia
+            </button>
+          ) : addons.length > 0 ? (
             <div className="flex items-center gap-3">
               {/* Stepper qty */}
               <div
