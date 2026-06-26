@@ -158,7 +158,9 @@ export const fetchPentingNotifications = (merchantId) =>
 
 export const fetchPengingatNotifications = (merchantId) =>
   safeGet(async () => {
-    const res = await api.get('/products/', { params: { merchant_id: merchantId } });
+    const res = await api.get('/products/', {
+      params: { merchant_id: merchantId, only_active_merchant: false },
+    });
     const now = new Date().toISOString();
     return res.data
       .filter((p) => p.stok <= 5)

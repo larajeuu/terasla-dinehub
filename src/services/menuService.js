@@ -42,7 +42,11 @@ export const getMerchantMenus = async (merchantId) => {
       .filter((p) => p.merchant_id === Number(merchantId))
       .map(mapProduct);
   }
-  const res = await api.get('/products/', { params: { merchant_id: merchantId } });
+  // only_active_merchant=false: panel merchant harus tetap bisa mengelola
+  // menunya sendiri meski tokonya sedang dinonaktifkan/pending/suspended.
+  const res = await api.get('/products/', {
+    params: { merchant_id: merchantId, only_active_merchant: false },
+  });
   return res.data.map(mapProduct);
 };
 
