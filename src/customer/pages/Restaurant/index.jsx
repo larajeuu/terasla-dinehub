@@ -5,6 +5,7 @@ import RestaurantInfo from './components/RestaurantInfo';
 import SearchBar from '../../components/SearchBar';
 import ProductCard from '../../components/ProductCard';
 import CartBar from '../../components/CartBar';
+import { isMerchantClosed, isMerchantActive } from '../../../shared/utils/merchant';
 
 const Restaurant = () => {
   const { id } = useParams();
@@ -16,6 +17,12 @@ const Restaurant = () => {
     searchQuery,
     setSearchQuery,
   } = useTenantData(id);
+
+  // Merchant tutup → info toko tetap tampil (badge "Tutup"), tapi menu &
+  // pencarian disembunyikan supaya produk tidak bisa dipesan.
+  const closed = !loading && isMerchantClosed(tenant);
+  // Merchant suspended/pending → tidak boleh diakses pelanggan sama sekali.
+  const unavailable = !loading && tenant && !isMerchantActive(tenant);
 
   return (
     <div
@@ -35,6 +42,15 @@ const Restaurant = () => {
             Coba Lagi
           </button>
         </div>
+      ) : unavailable ? (
+        <div className="text-center py-16 px-6">
+          <p className="text-base font-bold text-gray-800" style={{ fontFamily: "'Poppins', sans-serif" }}>
+            Tenant tidak tersedia
+          </p>
+          <p className="text-sm text-gray-500 mt-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+            Tenant ini sedang tidak aktif dan tidak dapat diakses saat ini.
+          </p>
+        </div>
       ) : (
         <>
           {loading && !tenant ? (
@@ -43,6 +59,19 @@ const Restaurant = () => {
             <RestaurantInfo tenant={tenant} />
           )}
 
+          {closed ? (
+            <div className="mx-4 mt-4 rounded-2xl p-5 text-center"
+                 style={{ background: '#fff7ed', border: '1px solid #fed7aa' }}>
+              <p className="text-sm font-bold" style={{ color: '#9a3412', fontFamily: "'Poppins', sans-serif" }}>
+                Tenant sedang tutup
+              </p>
+              <p className="text-xs mt-1" style={{ color: '#9a3412', fontFamily: "'Inter', sans-serif" }}>
+                Menu tidak tersedia dan pesanan tidak dapat dilakukan untuk saat ini.
+                Silakan kembali lagi saat tenant buka.
+              </p>
+            </div>
+          ) : (
+          <>
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
@@ -88,6 +117,8 @@ const Restaurant = () => {
               </div>
             )}
           </div>
+          </>
+          )}
         </>
       )}
 

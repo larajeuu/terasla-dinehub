@@ -39,6 +39,7 @@ const mapMerchantDetail = (m) => ({
     name: p.nama,
     price: p.harga,
     stock: p.stok,
+    isBanned: p.is_banned ?? false,
   })),
 });
 

@@ -122,6 +122,20 @@ const MenuDetail = ({ menu, onBack, onSave, onDelete }) => {
 
       {/* Form */}
       <div className="flex-1 px-4 py-5 pb-28 flex flex-col gap-4">
+        {menu.banned && (
+          <div
+            className="rounded-2xl px-4 py-3"
+            style={{ background: '#fef2f2', border: '1px solid #fecaca', fontFamily: "'Inter', sans-serif" }}
+          >
+            <p className="text-sm font-bold" style={{ color: '#b91c1c', fontFamily: "'Poppins', sans-serif" }}>
+              Produk diblokir admin
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: '#b91c1c' }}>
+              Produk ini disembunyikan dari pelanggan dan tidak bisa dipesan. Hanya
+              admin yang dapat membuka blokir — pengaturan ketersediaan dinonaktifkan.
+            </p>
+          </div>
+        )}
         <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
 
           {/* Foto produk */}
@@ -265,13 +279,14 @@ const MenuDetail = ({ menu, onBack, onSave, onDelete }) => {
                 </p>
               </div>
               <button
-                onClick={() => setAvailable(!available)}
-                className="relative w-11 h-6 rounded-full transition-all"
-                style={{ background: available ? '#1D3A27' : '#d1d5db' }}
+                onClick={() => !menu.banned && setAvailable(!available)}
+                disabled={menu.banned}
+                className="relative w-11 h-6 rounded-full transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ background: !menu.banned && available ? '#1D3A27' : '#d1d5db' }}
               >
                 <div
                   className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all"
-                  style={{ left: available ? '22px' : '2px' }}
+                  style={{ left: !menu.banned && available ? '22px' : '2px' }}
                 />
               </button>
             </div>

@@ -38,26 +38,38 @@ const MenuCard = ({ menu, onClick, onToggle }) => {
         </p>
       </div>
 
-      {/* Toggle + status */}
+      {/* Toggle + status. Produk diblokir admin → status terkunci, merchant
+          tidak bisa mengaktifkannya kembali. */}
       <div className="flex flex-col items-center gap-1.5 shrink-0">
-        <span
-          className="text-xs font-semibold px-2 py-0.5 rounded-full"
-          style={{
-            background: menu.available ? '#f0fdf4' : '#fef2f2',
-            color: menu.available ? '#16a34a' : '#dc2626',
-            fontFamily: "'Inter', sans-serif",
-          }}
-        >
-          {menu.available ? 'Tersedia' : 'Habis'}
-        </span>
+        {menu.banned ? (
+          <span
+            className="text-xs font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: '#fee2e2', color: '#b91c1c', fontFamily: "'Inter', sans-serif" }}
+          >
+            Diblokir
+          </span>
+        ) : (
+          <span
+            className="text-xs font-semibold px-2 py-0.5 rounded-full"
+            style={{
+              background: menu.available ? '#f0fdf4' : '#fef2f2',
+              color: menu.available ? '#16a34a' : '#dc2626',
+              fontFamily: "'Inter', sans-serif",
+            }}
+          >
+            {menu.available ? 'Tersedia' : 'Habis'}
+          </span>
+        )}
         <button
-          onClick={(e) => { e.stopPropagation(); onToggle(); }}
-          className="relative w-11 h-6 rounded-full transition-all"
-          style={{ background: menu.available ? '#1D3A27' : '#d1d5db' }}
+          onClick={(e) => { e.stopPropagation(); if (!menu.banned) onToggle(); }}
+          disabled={menu.banned}
+          title={menu.banned ? 'Produk diblokir admin' : undefined}
+          className="relative w-11 h-6 rounded-full transition-all disabled:cursor-not-allowed disabled:opacity-50"
+          style={{ background: menu.banned ? '#d1d5db' : menu.available ? '#1D3A27' : '#d1d5db' }}
         >
           <div
             className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all"
-            style={{ left: menu.available ? '22px' : '2px' }}
+            style={{ left: !menu.banned && menu.available ? '22px' : '2px' }}
           />
         </button>
       </div>

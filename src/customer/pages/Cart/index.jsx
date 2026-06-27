@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import useCartStore from '../../../store/cartStore';
 import useTableStore from '../../../store/tableStore';
 import { formatRupiah } from '../../../shared/utils/format';
 import { getPublicFee, calcServiceFee } from '../../../services/platformSettingService';
+import { getTenants } from '../../../services/tenantService';
+import { isMerchantOpen } from '../../../shared/utils/merchant';
 import CartHeader from './components/CartHeader';
 import CartItemList from './components/CartItemList';
 import PaymentMethodCard from './components/PaymentMethodCard';
@@ -19,9 +21,17 @@ const Cart = () => {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [scanModalOpen, setScanModalOpen] = useState(false);
   const [fee, setFee] = useState({ fee_rate: 0, fee_fixed: 0, is_active: false });
+  // Status buka/tutup tiap merchant → cegah checkout bila ada tenant yang tutup.
+  const [merchantById, setMerchantById] = useState(null);
 
   useEffect(() => {
     getPublicFee().then(setFee).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getTenants()
+      .then((list) => setMerchantById(new Map(list.map((m) => [m.id, m]))))
+      .catch(() => setMerchantById(new Map()));
   }, []);
 
   const serviceFee = calcServiceFee(totalPrice, fee);
@@ -29,7 +39,22 @@ const Cart = () => {
 
   const isEmpty = items.length === 0;
 
+  // Nama tenant yang sedang tidak menerima pesanan (tutup atau dinonaktifkan)
+  // tapi produknya masih ada di keranjang.
+  const closedTenantNames = useMemo(() => {
+    if (!merchantById) return [];
+    const names = new Set();
+    for (const it of items) {
+      const m = merchantById.get(it.merchant_id);
+      if (m && !isMerchantOpen(m)) names.add(m.nama || it.merchant_nama || 'Tenant');
+    }
+    return [...names];
+  }, [items, merchantById]);
+
+  const hasClosedTenant = closedTenantNames.length > 0;
+
   const handleOrderClick = () => {
+    if (hasClosedTenant) return;
     if (!tableCode) {
       setScanModalOpen(true);
       return;
@@ -67,9 +92,17 @@ const Cart = () => {
                 'linear-gradient(to top, rgba(249,250,251,0.95) 30%, rgba(249,250,251,0))',
             }}
           />
+          {hasClosedTenant && (
+            <div className="pointer-events-auto relative mb-2 rounded-xl px-3 py-2.5 text-[12px] leading-snug"
+                 style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
+              {closedTenantNames.join(', ')} sedang tidak menerima pesanan. Hapus
+              produk dari tenant tersebut untuk melanjutkan.
+            </div>
+          )}
           <button
             onClick={handleOrderClick}
-            className="pointer-events-auto relative w-full flex items-center justify-between px-5 py-3.5 rounded-2xl text-white transition-all active:scale-[0.98] hover:brightness-110"
+            disabled={hasClosedTenant}
+            className="pointer-events-auto relative w-full flex items-center justify-between px-5 py-3.5 rounded-2xl text-white transition-all active:scale-[0.98] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 disabled:hover:brightness-100"
             style={{
               background:
                 'linear-gradient(135deg, #2d5a3d 0%, #1D3A27 50%, #15291c 100%)',

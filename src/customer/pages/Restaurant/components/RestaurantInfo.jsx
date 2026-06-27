@@ -1,10 +1,11 @@
 import TenantIllustration from '../../Home/components/TenantIllustration';
 import { StarIcon, ClockIcon } from '../../../../shared/components/icons';
+import { isMerchantOpen } from '../../../../shared/utils/merchant';
 
 const RestaurantInfo = ({ tenant }) => {
   if (!tenant) return null;
   const accentColor = '#1D3A27';
-  const isOpen = tenant.status === 'active';
+  const isOpen = isMerchantOpen(tenant);
 
   return (
     <section className="mx-4 mt-4 bg-white rounded-2xl p-4" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6' }}>

@@ -278,6 +278,7 @@ export const dummyProducts = [
     merchant_id: 5,
     category_id: null,
     category: null,
+    is_banned: true,
     foto: 'https://placehold.co/400x300/fbbf24/333333?text=Tahu+Goreng',
     deskripsi:
       'Tahu putih digoreng krispi di luar, lembut di dalam. Cocok dimakan hangat dengan cabe rawit.',

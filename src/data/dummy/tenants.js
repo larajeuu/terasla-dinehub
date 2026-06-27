@@ -48,6 +48,7 @@ export const dummyTenants = [
     block: 'C-005',
     category: 'Camilan',
     status: 'active',
+    is_open: false,
     rating: 4.5,
     total_orders: 6,
     total_revenue: 180000,

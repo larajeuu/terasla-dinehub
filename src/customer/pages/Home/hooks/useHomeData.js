@@ -3,6 +3,7 @@ import { getProducts } from '../../../../services/productService';
 import { getTenants } from '../../../../services/tenantService';
 import { getActiveBanners } from '../../../../services/bannerService';
 import { dummyBanners } from '../../../../data/dummy/banners';
+import { isMerchantOpen, isMerchantActive } from '../../../../shared/utils/merchant';
 
 // Banner dari API memakai snake_case; HomeBanner memakai camelCase.
 // Fallback gradien & aksen bila banner (mis. dibuat admin) tidak punya gambar
@@ -46,14 +47,27 @@ const useHomeData = () => {
       // dengan daftar merchant untuk dapat nama & kategori tenant (dipakai
       // tampilan kartu produk dan filter kategori).
       const merchantById = new Map(tenantsData.map((t) => [t.id, t]));
-      const enrichedProducts = productsData.map((p) => {
-        const m = merchantById.get(p.merchant_id);
-        return {
-          ...p,
-          merchant_nama: p.merchant_nama ?? m?.nama ?? null,
-          merchant_category: p.merchant_category ?? m?.category ?? null,
-        };
-      });
+      const enrichedProducts = productsData
+        // Merchant yang tutup tidak boleh muncul di etalase pelanggan. Backend
+        // sudah memfilter, ini lapisan tambahan (mis. mode dummy / data lama).
+        // Sembunyikan produk dari merchant yang tutup/suspended dan produk yang
+        // diblokir admin (is_banned). Backend sudah memfilter; ini lapisan
+        // tambahan (mode dummy / data lama).
+        .filter((p) => {
+          if (p.is_banned) return false;
+          const m = merchantById.get(p.merchant_id);
+          // Kalau merchant tak ditemukan di daftar, biarkan tampil (jangan
+          // sembunyikan produk hanya karena data merchant gagal dimuat).
+          return !m || isMerchantOpen(m);
+        })
+        .map((p) => {
+          const m = merchantById.get(p.merchant_id);
+          return {
+            ...p,
+            merchant_nama: p.merchant_nama ?? m?.nama ?? null,
+            merchant_category: p.merchant_category ?? m?.category ?? null,
+          };
+        });
       setAllProducts(enrichedProducts);
       setAllTenants(tenantsData);
     } catch (err) {
@@ -78,14 +92,17 @@ const useHomeData = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const tenants = allTenants.filter((t) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      !q ||
-      (t.nama || '').toLowerCase().includes(q) ||
-      (t.category || '').toLowerCase().includes(q)
-    );
-  });
+  const tenants = allTenants
+    // Merchant suspended/pending tidak boleh muncul sama sekali di etalase.
+    .filter((t) => isMerchantActive(t))
+    .filter((t) => {
+      const q = searchQuery.toLowerCase();
+      return (
+        !q ||
+        (t.nama || '').toLowerCase().includes(q) ||
+        (t.category || '').toLowerCase().includes(q)
+      );
+    });
 
   return {
     banners,

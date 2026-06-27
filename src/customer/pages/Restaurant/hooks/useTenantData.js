@@ -25,11 +25,15 @@ const useTenantData = (tenantId) => {
       // Lengkapi nama merchant pada tiap produk (response /products tidak
       // menyertakannya) supaya konsisten dengan data yang dipakai keranjang.
       setProducts(
-        productsData.map((p) => ({
-          ...p,
-          merchant_nama: p.merchant_nama ?? tenantData?.nama ?? null,
-          merchant_category: p.merchant_category ?? tenantData?.category ?? null,
-        }))
+        productsData
+          // Produk yang diblokir admin tidak boleh muncul ke pelanggan (backend
+          // sudah memfilter; ini lapisan tambahan untuk mode dummy/data lama).
+          .filter((p) => !p.is_banned)
+          .map((p) => ({
+            ...p,
+            merchant_nama: p.merchant_nama ?? tenantData?.nama ?? null,
+            merchant_category: p.merchant_category ?? tenantData?.category ?? null,
+          }))
       );
     } catch (err) {
       setError(err.message || 'Gagal memuat data tenant');

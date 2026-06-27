@@ -14,6 +14,8 @@ const mapProduct = (p) => ({
   stock: p.stok,
   // is_available jika ada di backend, fallback: stok > 0
   available: p.is_available !== undefined ? Boolean(p.is_available) : p.stok > 0,
+  // Diblokir admin — merchant tidak bisa mengubahnya, hanya bisa melihat.
+  banned: Boolean(p.is_banned),
   image: p.foto || null,
   categoryId: p.category_id ?? null,
   categoryName: p.category?.nama_kategori ?? null,

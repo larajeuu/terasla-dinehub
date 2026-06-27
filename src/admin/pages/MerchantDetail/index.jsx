@@ -14,7 +14,7 @@ import {
   XIcon,
 } from '../../components/icons';
 import { getMerchantById, updateMerchantStatus } from '../../../services/merchantService';
-import { deleteProduct } from '../../../services/productService';
+import { deleteProduct, setProductBan } from '../../../services/productService';
 import { getMerchantOrders } from '../../../services/merchantOrderService';
 import { getReviews } from '../../../services/reviewService';
 import { formatCurrency, formatDate, formatDateShort } from '../../utils/format';
@@ -30,6 +30,7 @@ const MerchantDetail = () => {
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
+  const [banningId, setBanningId] = useState(null);
   // Feedback hapus produk: { type: 'blocked' | 'error' | 'ok', text }
   const [productMsg, setProductMsg] = useState(null);
 
@@ -91,6 +92,33 @@ const MerchantDetail = () => {
       }
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // Blokir / buka-blokir produk. Tidak menghapus data — produk hanya
+  // disembunyikan dari pelanggan & tak bisa dipesan; merchant tak bisa membuka.
+  const handleToggleBan = async (p) => {
+    const next = !p.isBanned;
+    if (next && !window.confirm(`Blokir produk "${p.name}"? Produk akan disembunyikan dari pelanggan dan merchant tidak bisa membukanya sendiri.`)) return;
+    setBanningId(p.id);
+    setProductMsg(null);
+    const prevProducts = merchant.products;
+    // Optimistic update.
+    setMerchant((m) => ({
+      ...m,
+      products: (m.products || []).map((x) => (x.id === p.id ? { ...x, isBanned: next } : x)),
+    }));
+    try {
+      await setProductBan(p.id, next);
+      setProductMsg({
+        type: 'ok',
+        text: next ? `Produk "${p.name}" diblokir.` : `Blokir produk "${p.name}" dibuka.`,
+      });
+    } catch (err) {
+      setMerchant((m) => ({ ...m, products: prevProducts }));
+      setProductMsg({ type: 'error', text: err?.response?.data?.detail || 'Gagal mengubah status blokir produk.' });
+    } finally {
+      setBanningId(null);
     }
   };
 
@@ -253,7 +281,19 @@ const MerchantDetail = () => {
               <tbody>
                 {m.products.map((p) => (
                   <tr key={p.id} className="border-t" style={{ borderColor: '#f1f5f9' }}>
-                    <td className="px-4 py-3 font-semibold text-gray-800">{p.name}</td>
+                    <td className="px-4 py-3 font-semibold text-gray-800">
+                      <div className="flex items-center gap-2">
+                        {p.name}
+                        {p.isBanned && (
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                            style={{ background: '#fee2e2', color: '#b91c1c' }}
+                          >
+                            Diblokir
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 font-semibold whitespace-nowrap" style={{ color: '#1D3A27' }}>
                       {formatCurrency(p.price)}
                     </td>
@@ -269,15 +309,34 @@ const MerchantDetail = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleDeleteProduct(p)}
-                        disabled={deletingId === p.id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
-                        style={{ background: '#fff', color: '#dc2626', border: '1px solid #fecaca' }}
-                      >
-                        <XIcon size={13} />
-                        {deletingId === p.id ? 'Menghapus...' : 'Hapus'}
-                      </button>
+                      <div className="flex justify-end gap-1.5">
+                        <button
+                          onClick={() => handleToggleBan(p)}
+                          disabled={banningId === p.id}
+                          title={p.isBanned ? 'Buka blokir produk' : 'Blokir produk dari pelanggan'}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
+                          style={
+                            p.isBanned
+                              ? { background: '#16a34a', color: '#fff' }
+                              : { background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }
+                          }
+                        >
+                          {banningId === p.id
+                            ? 'Memproses...'
+                            : p.isBanned
+                            ? 'Buka Blokir'
+                            : 'Blokir'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(p)}
+                          disabled={deletingId === p.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
+                          style={{ background: '#fff', color: '#dc2626', border: '1px solid #fecaca' }}
+                        >
+                          <XIcon size={13} />
+                          {deletingId === p.id ? 'Menghapus...' : 'Hapus'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

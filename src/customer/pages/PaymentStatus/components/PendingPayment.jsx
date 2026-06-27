@@ -15,7 +15,7 @@ const titleByType = (charge) => {
   return `Bayar dengan ${charge.method}`;
 };
 
-// Hitung mundur mm:ss dari expires_at.
+// Hitung mundur dari expires_at. Mengembalikan sisa detik (number) atau null.
 const useCountdown = (expiresAt) => {
   const [left, setLeft] = useState(null);
   useEffect(() => {
@@ -26,10 +26,58 @@ const useCountdown = (expiresAt) => {
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, [expiresAt]);
+  return left;
+};
+
+// Satu unit waktu (angka 2 digit + label satuan).
+const TimeUnit = ({ value, label, color }) => (
+  <div className="flex flex-col items-center">
+    <span
+      className="text-3xl font-bold tabular-nums leading-none"
+      style={{ color, fontFamily: "'Poppins', sans-serif" }}
+    >
+      {String(value).padStart(2, '0')}
+    </span>
+    <span className="text-[10px] uppercase tracking-wider text-gray-400 mt-1">{label}</span>
+  </div>
+);
+
+// Tampilan hitung mundur menit:detik dengan label satuan eksplisit agar tidak
+// disalahartikan sebagai jam:menit. Warna memerah saat ≤ 60 detik tersisa.
+const CountdownDisplay = ({ left }) => {
   if (left == null) return null;
-  const m = String(Math.floor(left / 60)).padStart(2, '0');
-  const s = String(left % 60).padStart(2, '0');
-  return `${m}:${s}`;
+
+  if (left <= 0) {
+    return (
+      <div className="my-4 rounded-2xl p-4 text-center" style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+        <p className="text-[11px] uppercase tracking-wider text-red-500 font-semibold mb-0.5">Batas Waktu Pembayaran</p>
+        <p className="text-base font-bold" style={{ color: '#dc2626', fontFamily: "'Poppins', sans-serif" }}>
+          Waktu pembayaran habis
+        </p>
+      </div>
+    );
+  }
+
+  const m = Math.floor(left / 60);
+  const s = left % 60;
+  const urgent = left <= 60;
+  const numColor = urgent ? '#dc2626' : '#1D3A27';
+
+  return (
+    <div
+      className="my-4 rounded-2xl p-4 text-center"
+      style={{ background: urgent ? '#fef2f2' : '#f8fafc', border: `1px solid ${urgent ? '#fecaca' : '#e5e7eb'}` }}
+    >
+      <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-2">
+        Selesaikan pembayaran dalam
+      </p>
+      <div className="flex items-end justify-center gap-3">
+        <TimeUnit value={m} label="Menit" color={numColor} />
+        <span className="text-3xl font-bold leading-none pb-4" style={{ color: numColor, fontFamily: "'Poppins', sans-serif" }}>:</span>
+        <TimeUnit value={s} label="Detik" color={numColor} />
+      </div>
+    </div>
+  );
 };
 
 const QrMiddle = ({ value }) => {
@@ -88,7 +136,7 @@ const Middle = ({ charge }) => {
 };
 
 const PendingPayment = ({ charge, onCheck, onChangeMethod, onSimulate }) => {
-  const countdown = useCountdown(charge.expires_at);
+  const secondsLeft = useCountdown(charge.expires_at);
 
   return (
     <div className="bg-white rounded-3xl overflow-hidden mx-auto max-w-sm" style={{ boxShadow: '0 12px 32px -8px rgba(0,0,0,0.3)' }}>
@@ -110,19 +158,16 @@ const PendingPayment = ({ charge, onCheck, onChangeMethod, onSimulate }) => {
 
         <Middle charge={charge} />
 
-        {/* Nominal & batas */}
+        {/* Hitung mundur batas pembayaran (menit:detik) */}
+        <CountdownDisplay left={secondsLeft} />
+
+        {/* Nominal */}
         <div className="flex items-center justify-between py-2 border-t" style={{ borderColor: '#f1f5f9' }}>
           <span className="text-xs text-gray-500">Nominal Transfer</span>
           <span className="text-sm font-bold" style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}>
             {formatRupiah(charge.nominal)}
           </span>
         </div>
-        {countdown && (
-          <div className="flex items-center justify-between py-2 border-t" style={{ borderColor: '#f1f5f9' }}>
-            <span className="text-xs text-gray-500">Batas Pembayaran</span>
-            <span className="text-sm font-bold tabular-nums" style={{ color: '#ef4444' }}>{countdown}</span>
-          </div>
-        )}
 
         {/* Cara bayar */}
         {charge.instructions?.length > 0 && (

@@ -39,6 +39,18 @@ export const getProductById = async (id) => {
   return response.data;
 };
 
+// Blokir / buka-blokir produk (khusus admin). Berbeda dari nonaktif biasa:
+// produk diblokir tidak muncul ke pelanggan & tidak bisa dipesan, dan merchant
+// tidak bisa membatalkannya sendiri.
+export const setProductBan = async (id, isBanned) => {
+  if (USE_DUMMY) {
+    await delay(150);
+    return { id, is_banned: isBanned };
+  }
+  const response = await api.put(`/products/${id}/ban`, { is_banned: isBanned });
+  return response.data;
+};
+
 // Hapus produk (admin / merchant pemilik). Backend menolak dengan HTTP 409
 // bila produk sudah pernah dipakai transaksi — tangani pesannya di pemanggil.
 export const deleteProduct = async (id) => {

@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import TenantIllustration from './TenantIllustration';
 import { StarIcon, ClockIcon } from '../../../../shared/components/icons';
+import { isMerchantOpen } from '../../../../shared/utils/merchant';
 
 const TenantCard = ({ tenant }) => {
   const navigate = useNavigate();
   const accentColor = '#1D3A27';
-  const isOpen = tenant.status === 'active';
+  // Merchant tutup tetap tampil di daftar, hanya badge-nya jadi "Tutup".
+  const isOpen = isMerchantOpen(tenant);
 
   return (
     <button
