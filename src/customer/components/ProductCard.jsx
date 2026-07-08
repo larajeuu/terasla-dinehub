@@ -9,6 +9,9 @@ const ProductCard = ({ product, showTenant = true }) => {
   const qty = useCartStore((s) => s.getItemQty(product.id));
   // Produk dinonaktifkan merchant (toggle "Habis") → tidak bisa dipesan.
   const unavailable = product.is_available === false;
+  // Produk ber-add-on: tombol tambah membuka modal agar pelanggan memilih
+  // add-on per unit (tiap kombinasi jadi baris keranjang terpisah).
+  const hasAddons = (product.additionals || []).some((a) => a.is_active !== false);
 
   return (
     <>
@@ -82,7 +85,11 @@ const ProductCard = ({ product, showTenant = true }) => {
                 Habis
               </button>
             ) : (
-              <QtyControl product={product} size="sm" />
+              <QtyControl
+                product={product}
+                size="sm"
+                onAddOpenModal={hasAddons ? () => setModalOpen(true) : undefined}
+              />
             )}
           </div>
         </div>

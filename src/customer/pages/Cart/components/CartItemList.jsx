@@ -39,7 +39,7 @@ const CartItemList = ({ items }) => {
           </div>
           <div className="space-y-2.5">
             {group.items.map((item) => (
-              <CartItem key={item.id} item={item} />
+              <CartItem key={item.lineKey} item={item} />
             ))}
           </div>
         </section>

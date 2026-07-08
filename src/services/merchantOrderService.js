@@ -122,7 +122,7 @@ const dateLabel = (iso) => {
   return `${d.getDate()} ${MONTHS_ID[d.getMonth()]}`;
 };
 
-// Unduh laporan penjualan (Excel) untuk periode: 'weekly' | 'monthly' | 'yearly'.
+// Unduh laporan penjualan (Excel) untuk periode: 'daily' | 'weekly' | 'monthly' | 'yearly'.
 // Memicu download file .xlsx di browser.
 export const downloadSalesReport = async (period) => {
   const res = await api.get('/merchant-orders/report', {

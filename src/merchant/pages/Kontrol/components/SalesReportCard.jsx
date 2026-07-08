@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { downloadSalesReport } from '../../../../services/merchantOrderService';
 
 const PERIODS = [
+  { key: 'daily', label: 'Harian', desc: 'Hari ini' },
   { key: 'weekly', label: 'Mingguan', desc: '7 hari terakhir' },
   { key: 'monthly', label: 'Bulanan', desc: 'Bulan berjalan' },
   { key: 'yearly', label: 'Tahunan', desc: 'Tahun berjalan' },

@@ -4,7 +4,7 @@ import { TrashIcon } from '../../../../shared/components/icons';
 import QtyControl from '../../../components/QtyControl';
 
 const CartItem = ({ item }) => {
-  const removeItem = useCartStore((s) => s.removeItem);
+  const removeLine = useCartStore((s) => s.removeLine);
   const unitPrice = itemUnitPrice(item);
   const subtotal = unitPrice * item.qty;
   const addonLabel = item.selectedAddons?.map((a) => a.nama || a.name).join(', ');
@@ -56,7 +56,7 @@ const CartItem = ({ item }) => {
             )}
           </div>
           <button
-            onClick={() => removeItem(item.id)}
+            onClick={() => removeLine(item.lineKey)}
             className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
             aria-label="Hapus item"
           >

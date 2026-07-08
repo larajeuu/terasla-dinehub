@@ -144,8 +144,10 @@ export const getCustomerOrderById = async (id) => {
 // payload: {
 //   customer: { nama, email?, phone? },
 //   dining_table_code?, tipe_order?, metode_pembayaran_id,
-//   catatan?, items: [{ product_id, jumlah, varian? }]
+//   catatan?, items: [{ product_id, jumlah, varian?, addon_ids? }]
 // }
+// Produk yang sama boleh muncul di beberapa entri items dengan addon_ids
+// berbeda (satu entri per kombinasi add-on).
 export const createCustomerOrder = async (payload) => {
   const res = await api.post('/customer-orders', payload);
   return mapDetail(res.data);

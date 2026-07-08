@@ -9,19 +9,25 @@ const ProductDetailModal = ({ product, open, onClose }) => {
   const [shown, setShown] = useState(false);
 
   // ── Item tambahan (add-on) ──────────────────────────────────────────────
-  const setItemWithAddons = useCartStore((s) => s.setItemWithAddons);
-  const cartItem = useCartStore((s) => (product ? s.getItem(product.id) : null));
+  const addItemWithAddons = useCartStore((s) => s.addItemWithAddons);
   const addons = (product?.additionals || []).filter((a) => a.is_active !== false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [qty, setQty] = useState(1);
 
-  // Saat modal dibuka: pulihkan pilihan add-on & qty dari keranjang (bila ada).
-  useEffect(() => {
-    if (!open) return;
-    setSelectedIds(cartItem?.selectedAddons?.map((a) => a.id) || []);
-    setQty(cartItem?.qty || 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, product?.id]);
+  // Saat modal dibuka (atau produknya berganti): selalu mulai dari pilihan
+  // kosong. Tiap "Tambah" membuat baris keranjang baru per kombinasi add-on
+  // (atau menambah qty baris yang kombinasinya sama), sehingga produk yang sama
+  // bisa dipesan dengan add-on berbeda-beda. Reset dilakukan saat render
+  // (pola "adjusting state when props change") agar tidak memicu render beruntun.
+  const resetKey = open ? product?.id ?? null : null;
+  const [prevResetKey, setPrevResetKey] = useState(null);
+  if (resetKey !== prevResetKey) {
+    setPrevResetKey(resetKey);
+    if (resetKey != null) {
+      setSelectedIds([]);
+      setQty(1);
+    }
+  }
 
   const toggleAddon = (id) =>
     setSelectedIds((prev) =>
@@ -36,7 +42,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
 
   const handleAddToCart = () => {
     if (unavailable) return;
-    setItemWithAddons(product, selectedAddons, qty);
+    addItemWithAddons(product, selectedAddons, qty);
     onClose();
   };
 
@@ -309,7 +315,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                   fontFamily: "'Poppins', sans-serif",
                 }}
               >
-                {cartItem ? 'Perbarui' : 'Tambah'} · {formatRupiah(unitPrice * qty)}
+                Tambah · {formatRupiah(unitPrice * qty)}
               </button>
             </div>
           ) : (

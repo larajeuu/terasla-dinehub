@@ -4,11 +4,20 @@ import { PlusIcon, MinusIcon } from '../../shared/components/icons';
 
 const MAX_QTY = 999;
 
+// `product` bisa berupa produk biasa (kartu produk) ATAU baris keranjang
+// (punya `lineKey`). Mode baris mengoperasikan baris itu saja, sehingga produk
+// yang sama dengan kombinasi add-on berbeda dihitung terpisah.
 const QtyControl = ({ product, size = 'sm', onAddOpenModal }) => {
+  const isLine = Boolean(product.lineKey);
   const addItem = useCartStore((s) => s.addItem);
   const decreaseItem = useCartStore((s) => s.decreaseItem);
   const setItemQty = useCartStore((s) => s.setItemQty);
-  const qty = useCartStore((s) => s.getItemQty(product.id));
+  const increaseLine = useCartStore((s) => s.increaseLine);
+  const decreaseLine = useCartStore((s) => s.decreaseLine);
+  const setLineQty = useCartStore((s) => s.setLineQty);
+  const qty = useCartStore((s) =>
+    isLine ? s.getLineQty(product.lineKey) : s.getItemQty(product.id)
+  );
 
   const [inputValue, setInputValue] = useState(String(qty));
 
@@ -22,7 +31,9 @@ const QtyControl = ({ product, size = 'sm', onAddOpenModal }) => {
     setInputValue(cleaned);
     const num = parseInt(cleaned, 10);
     if (!isNaN(num) && num > 0) {
-      setItemQty(product, Math.min(num, MAX_QTY));
+      const next = Math.min(num, MAX_QTY);
+      if (isLine) setLineQty(product.lineKey, next);
+      else setItemQty(product, next);
     }
   };
 
@@ -40,12 +51,17 @@ const QtyControl = ({ product, size = 'sm', onAddOpenModal }) => {
 
   const handleAdd = (e) => {
     e?.stopPropagation?.();
-    addItem(product);
+    if (isLine) increaseLine(product.lineKey);
+    // Produk dengan add-on: "+" membuka modal agar pelanggan memilih add-on
+    // untuk unit tambahan (bisa beda dari unit sebelumnya).
+    else if (onAddOpenModal) onAddOpenModal(e);
+    else addItem(product);
   };
 
   const handleDecrease = (e) => {
     e?.stopPropagation?.();
-    decreaseItem(product.id);
+    if (isLine) decreaseLine(product.lineKey);
+    else decreaseItem(product.id);
   };
 
   if (qty === 0) {

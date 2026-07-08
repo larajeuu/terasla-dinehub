@@ -6,6 +6,7 @@ const StepKonfirmasi = ({ dataAkun, dataToko }) => {
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleDaftar = async () => {
@@ -30,16 +31,12 @@ const StepKonfirmasi = ({ dataAkun, dataToko }) => {
         category: dataToko?.kategori,
         deskripsi: dataToko?.deskripsi,
       }
-    
 
-      console.log('Register Payload: ', payload);
+      await register(payload);
 
-      const response = await register(payload);
-    
-      console.log('Register Response: ', response);
-
-      navigate('/merchant/login', {replace: true});
-
+      // Akun baru berstatus pending — tampilkan info tunggu approval admin,
+      // jangan langsung diarahkan ke login tanpa penjelasan.
+      setSuccess(true);
     } catch (error) {
       console.error('Register Gagal: ', error);
 
@@ -48,8 +45,46 @@ const StepKonfirmasi = ({ dataAkun, dataToko }) => {
         'Register Akun Gagal. Silahkan Coba Lagi.';
 
       setError(message);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="bg-white rounded-2xl p-6 text-center" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+          <div
+            className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)' }}
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <p className="font-bold text-base text-gray-800 mb-2" style={{ fontFamily: "'Poppins', sans-serif" }}>
+            Pendaftaran Berhasil
+          </p>
+          <p className="text-sm text-gray-500 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+            Akun merchant <span className="font-semibold text-gray-700">{dataToko?.namaToko}</span> sedang
+            menunggu persetujuan admin. Kamu baru bisa masuk setelah akun disetujui.
+          </p>
+        </div>
+
+        <button
+          onClick={() => navigate('/merchant/login', { replace: true })}
+          className="w-full py-3.5 rounded-2xl font-semibold text-sm text-white transition-all active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, #1D3A27 0%, #244830 100%)',
+            fontFamily: "'Poppins', sans-serif",
+            boxShadow: '0 4px 16px rgba(29,58,39,0.3)',
+          }}
+        >
+          Ke Halaman Masuk
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -146,7 +181,7 @@ const StepKonfirmasi = ({ dataAkun, dataToko }) => {
           boxShadow: '0 4px 16px rgba(200,150,26,0.35)',
         }}
       >
-        Daftar
+        {loading ? 'Mendaftarkan...' : 'Daftar'}
       </button>
     </div>
   );
