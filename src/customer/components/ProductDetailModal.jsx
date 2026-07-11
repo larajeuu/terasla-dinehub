@@ -11,38 +11,76 @@ const ProductDetailModal = ({ product, open, onClose }) => {
   // ── Item tambahan (add-on) ──────────────────────────────────────────────
   const addItemWithAddons = useCartStore((s) => s.addItemWithAddons);
   const addons = (product?.additionals || []).filter((a) => a.is_active !== false);
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [qty, setQty] = useState(1);
+  // Pilihan add-on PER PRODUK (per unit): unitAddons[i] = daftar id add-on untuk
+  // produk ke-(i+1). Jumlah yang dipesan = unitAddons.length; qty 2 berarti ada
+  // 2 tab pilihan tambahan, masing-masing bisa berbeda.
+  const [unitAddons, setUnitAddons] = useState([[]]);
+  const [activeUnit, setActiveUnit] = useState(0);
 
-  // Saat modal dibuka (atau produknya berganti): selalu mulai dari pilihan
-  // kosong. Tiap "Tambah" membuat baris keranjang baru per kombinasi add-on
-  // (atau menambah qty baris yang kombinasinya sama), sehingga produk yang sama
-  // bisa dipesan dengan add-on berbeda-beda. Reset dilakukan saat render
-  // (pola "adjusting state when props change") agar tidak memicu render beruntun.
+  // Saat modal dibuka (atau produknya berganti): selalu mulai dari 1 produk
+  // tanpa tambahan. Reset dilakukan saat render (pola "adjusting state when
+  // props change") agar tidak memicu render beruntun.
   const resetKey = open ? product?.id ?? null : null;
   const [prevResetKey, setPrevResetKey] = useState(null);
   if (resetKey !== prevResetKey) {
     setPrevResetKey(resetKey);
     if (resetKey != null) {
-      setSelectedIds([]);
-      setQty(1);
+      setUnitAddons([[]]);
+      setActiveUnit(0);
     }
   }
 
+  const qty = unitAddons.length;
+
+  // Ubah jumlah produk → jumlah tab pilihan ikut berubah. Saat bertambah,
+  // langsung fokus ke tab produk baru; saat berkurang, buang pilihan unit
+  // terakhir dan jaga tab aktif tetap valid.
+  const changeQty = (next) => {
+    const n = Math.max(1, Math.min(999, next));
+    setUnitAddons((prev) => {
+      if (n === prev.length) return prev;
+      if (n > prev.length) {
+        return [...prev, ...Array.from({ length: n - prev.length }, () => [])];
+      }
+      return prev.slice(0, n);
+    });
+    setActiveUnit((cur) => (n > qty ? n - 1 : Math.min(cur, n - 1)));
+  };
+
   const toggleAddon = (id) =>
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    setUnitAddons((prev) =>
+      prev.map((ids, i) =>
+        i === activeUnit
+          ? ids.includes(id)
+            ? ids.filter((x) => x !== id)
+            : [...ids, id]
+          : ids
+      )
     );
 
-  const selectedAddons = addons.filter((a) => selectedIds.includes(a.id));
-  const unitPrice =
-    (product?.harga || 0) + selectedAddons.reduce((s, a) => s + (a.harga || 0), 0);
+  const activeIds = unitAddons[activeUnit] || [];
+  const addonById = new Map(addons.map((a) => [a.id, a]));
+  const unitTotal = (ids) =>
+    (product?.harga || 0) +
+    ids.reduce((s, id) => s + (addonById.get(id)?.harga || 0), 0);
+  const grandTotal = unitAddons.reduce((s, ids) => s + unitTotal(ids), 0);
   // Produk dinonaktifkan merchant (toggle "Habis") → tidak bisa dipesan.
   const unavailable = product?.is_available === false;
 
   const handleAddToCart = () => {
     if (unavailable) return;
-    addItemWithAddons(product, selectedAddons, qty);
+    // Unit dengan kombinasi add-on yang sama digabung jadi satu baris keranjang;
+    // kombinasi berbeda menjadi baris terpisah.
+    const groups = new Map();
+    for (const ids of unitAddons) {
+      const key = [...ids].sort((a, b) => a - b).join(',');
+      if (!groups.has(key)) groups.set(key, { ids, count: 0 });
+      groups.get(key).count += 1;
+    }
+    for (const { ids, count } of groups.values()) {
+      const chosen = addons.filter((a) => ids.includes(a.id));
+      addItemWithAddons(product, chosen, count);
+    }
     onClose();
   };
 
@@ -209,7 +247,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
               </div>
             )}
 
-            {/* Item tambahan (add-on) */}
+            {/* Item tambahan (add-on) — pilihan per produk (tab per unit) */}
             {addons.length > 0 && (
               <div className="mt-5">
                 <h3
@@ -218,9 +256,41 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                 >
                   Tambahan
                 </h3>
+
+                {qty > 1 && (
+                  <>
+                    <p
+                      className="text-[11px] text-gray-400 mb-2"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Pilih tambahan untuk masing-masing produk.
+                    </p>
+                    <div className="flex gap-2 overflow-x-auto pb-2 mb-1 -mx-1 px-1">
+                      {unitAddons.map((ids, i) => {
+                        const active = i === activeUnit;
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => setActiveUnit(i)}
+                            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+                            style={{
+                              background: active ? '#1D3A27' : '#f3f4f6',
+                              color: active ? 'white' : '#6b7280',
+                              fontFamily: "'Poppins', sans-serif",
+                            }}
+                          >
+                            Produk {i + 1}
+                            {ids.length > 0 ? ` · ${ids.length}` : ''}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
                 <div className="flex flex-col gap-2">
                   {addons.map((a) => {
-                    const checked = selectedIds.includes(a.id);
+                    const checked = activeIds.includes(a.id);
                     return (
                       <button
                         key={a.id}
@@ -288,7 +358,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                 style={{ height: 44, border: '1.5px solid #1D3A27', width: 120 }}
               >
                 <button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  onClick={() => changeQty(qty - 1)}
                   className="flex items-center justify-center text-white h-full"
                   style={{ width: 40, background: '#1D3A27' }}
                   aria-label="Kurangi"
@@ -297,7 +367,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                 </button>
                 <span className="flex-1 text-center font-bold tabular-nums" style={{ color: '#1D3A27' }}>{qty}</span>
                 <button
-                  onClick={() => setQty((q) => Math.min(999, q + 1))}
+                  onClick={() => changeQty(qty + 1)}
                   className="flex items-center justify-center text-white h-full"
                   style={{ width: 40, background: '#1D3A27' }}
                   aria-label="Tambah"
@@ -315,7 +385,7 @@ const ProductDetailModal = ({ product, open, onClose }) => {
                   fontFamily: "'Poppins', sans-serif",
                 }}
               >
-                Tambah · {formatRupiah(unitPrice * qty)}
+                Tambah · {formatRupiah(grandTotal)}
               </button>
             </div>
           ) : (
