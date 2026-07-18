@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import useCartStore from '../../../store/cartStore';
 import useTableStore from '../../../store/tableStore';
+import usePaymentStore from '../../../store/paymentStore';
 import { formatRupiah } from '../../../shared/utils/format';
+import { estimateChannelFee } from '../../../shared/utils/paymentFee';
 import { getPublicFee, calcServiceFee } from '../../../services/platformSettingService';
 import { getTenants } from '../../../services/tenantService';
 import { isMerchantOpen } from '../../../shared/utils/merchant';
@@ -34,8 +36,13 @@ const Cart = () => {
       .catch(() => setMerchantById(new Map()));
   }, []);
 
+  const selectedMethod = usePaymentStore((s) => s.selectedMethod);
+
   const serviceFee = calcServiceFee(totalPrice, fee);
-  const grandTotal = totalPrice + serviceFee;
+  // Estimasi biaya channel gateway (Tripay) dari metode terpilih — dihitung
+  // atas subtotal + biaya layanan (nominal yang dikirim ke gateway).
+  const channelFee = estimateChannelFee(totalPrice + serviceFee, selectedMethod);
+  const grandTotal = totalPrice + serviceFee + channelFee;
 
   const isEmpty = items.length === 0;
 
@@ -79,7 +86,7 @@ const Cart = () => {
             <PaymentMethodCard />
           </div>
 
-          <CartSummary totalItems={totalItems} subtotal={totalPrice} serviceFee={serviceFee} />
+          <CartSummary totalItems={totalItems} subtotal={totalPrice} serviceFee={serviceFee} channelFee={channelFee} />
         </>
       )}
 

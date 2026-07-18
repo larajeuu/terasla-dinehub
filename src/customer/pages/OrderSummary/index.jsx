@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderByPaymentToken, cancelMerchantOrderByToken } from '../../../services/paymentService';
+import { getOrderByPaymentToken, cancelMerchantOrderByToken, getPaymentStatus } from '../../../services/paymentService';
 import { confirmCustomerOrderByHash, getCustomerOrderByHash } from '../../../services/customerOrderService';
 import { formatRupiah } from '../../../shared/utils/format';
 
@@ -86,6 +86,8 @@ const OrderSummary = () => {
   const { token, hash } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  // Info pembayaran (fee channel + total dibayar) — hanya ada di alur token.
+  const [charge, setCharge] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [confirming, setConfirming] = useState(false);
@@ -99,6 +101,9 @@ const OrderSummary = () => {
       setError(null);
       // Via token pembayaran (alur normal) atau via hash (link email /order/:hash).
       setOrder(token ? await getOrderByPaymentToken(token) : await getCustomerOrderByHash(hash));
+      // Rincian pembayaran (fee channel, total dibayar) — opsional, jangan
+      // gagalkan halaman bila tidak tersedia.
+      if (token) getPaymentStatus(token).then(setCharge).catch(() => {});
     } catch (err) {
       setError(err?.response?.data?.detail || 'Gagal memuat ringkasan transaksi');
     } finally {
@@ -206,7 +211,17 @@ const OrderSummary = () => {
               <InfoRow label="Jumlah Tenant" value={`${order.tenant_count} tenant`} />
               <InfoRow label="Waktu Pesan" value={formatTanggal(order.created_at)} />
               {order.catatan && <InfoRow label="Catatan" value={order.catatan} />}
-              <InfoRow label="Total Bayar" value={formatRupiah(order.total_harga)} accent="#1D3A27" />
+              {/* Ada fee channel (Tripay) → rincikan; Total Bayar = nominal yang
+                  benar-benar ditagih gateway (subtotal + fee). */}
+              {charge?.fee > 0 ? (
+                <>
+                  <InfoRow label="Subtotal Pesanan" value={formatRupiah(order.total_harga)} />
+                  <InfoRow label="Biaya Layanan Pembayaran" value={formatRupiah(charge.fee)} />
+                  <InfoRow label="Total Bayar" value={formatRupiah(charge.nominal)} accent="#1D3A27" />
+                </>
+              ) : (
+                <InfoRow label="Total Bayar" value={formatRupiah(order.total_harga)} accent="#1D3A27" />
+              )}
             </div>
           </div>
 

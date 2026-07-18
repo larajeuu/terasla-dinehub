@@ -62,6 +62,11 @@ const Payment = () => {
           label: m.nama_metode,
           description: feeDescription(m),
           brand: brandFromName(m.nama_metode),
+          // Data fee ikut disimpan ke paymentStore saat dipilih — dipakai
+          // keranjang untuk menghitung estimasi biaya channel di ringkasan.
+          tripay_code: m.tripay_code || null,
+          fee_flat: m.fee_flat || 0,
+          fee_percent: m.fee_percent || 0,
         }));
       setOptions(opts);
     } catch (err) {

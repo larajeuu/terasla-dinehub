@@ -20,8 +20,8 @@ const Row = ({ label, value, muted }) => (
   </div>
 );
 
-const CartSummary = ({ totalItems, subtotal, serviceFee = 0 }) => {
-  const total = subtotal + serviceFee;
+const CartSummary = ({ totalItems, subtotal, serviceFee = 0, channelFee = 0 }) => {
+  const total = subtotal + serviceFee + channelFee;
   return (
     <div
       className="mx-4 mt-4 p-4 bg-white rounded-2xl"
@@ -40,6 +40,10 @@ const CartSummary = ({ totalItems, subtotal, serviceFee = 0 }) => {
       <div className="space-y-1.5">
         <Row label={`Subtotal (${totalItems} item)`} value={formatRupiah(subtotal)} />
         <Row label="Biaya layanan" value={serviceFee > 0 ? formatRupiah(serviceFee) : 'Gratis'} muted />
+        {/* Estimasi biaya channel gateway (muncul setelah metode dipilih) */}
+        {channelFee > 0 && (
+          <Row label="Biaya pembayaran (estimasi)" value={formatRupiah(channelFee)} muted />
+        )}
       </div>
 
       <div
