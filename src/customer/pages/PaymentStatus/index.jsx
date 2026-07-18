@@ -30,9 +30,10 @@ const PaymentStatus = () => {
     if (!charge) refresh();
   }, [charge, refresh]);
 
-  // Auto-poll selama masih pending (di gateway asli, webhook yang men-trigger).
+  // Auto-poll selama masih pending (di gateway asli, webhook yang men-trigger;
+  // polling ini sekaligus rekonsiliasi bila webhook gagal).
   useEffect(() => {
-    if (!charge || charge.status === 'lunas') return undefined;
+    if (!charge || charge.status === 'lunas' || charge.status === 'gagal') return undefined;
     const t = setInterval(refresh, 3000);
     return () => clearInterval(t);
   }, [charge, refresh]);
@@ -67,6 +68,29 @@ const PaymentStatus = () => {
         <p className="text-red-400 text-sm mb-3">{error}</p>
         <button onClick={refresh} className="text-sm font-semibold px-4 py-2 rounded-lg text-white" style={{ background: '#1D3A27' }}>
           Coba Lagi
+        </button>
+      </div>
+    );
+  }
+
+  // Gateway asli: transaksi bisa kedaluwarsa/gagal (EXPIRED/FAILED dari Tripay).
+  // Beri jalan keluar: charge ulang order yang sama dengan metode lain.
+  if (charge.status === 'gagal') {
+    return wrap(
+      <div className="bg-white rounded-3xl mx-auto max-w-sm p-6 text-center" style={{ boxShadow: '0 12px 32px -8px rgba(0,0,0,0.3)' }}>
+        <p className="text-[11px] uppercase tracking-wider text-red-500 font-semibold mb-1">Status Pembayaran</p>
+        <p className="text-base font-bold mb-2" style={{ color: '#dc2626', fontFamily: "'Poppins', sans-serif" }}>
+          Pembayaran Gagal / Kedaluwarsa
+        </p>
+        <p className="text-xs text-gray-500 mb-5 leading-snug">
+          Transaksi ini tidak dapat dilanjutkan. Silakan buat pembayaran baru untuk pesanan yang sama.
+        </p>
+        <button
+          onClick={() => navigate('/payment', { state: { rechargeOrderId: charge.order_id } })}
+          className="w-full py-3 rounded-xl text-white text-sm font-bold"
+          style={{ background: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}
+        >
+          Coba Bayar Lagi
         </button>
       </div>
     );

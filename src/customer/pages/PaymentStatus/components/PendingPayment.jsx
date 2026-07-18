@@ -161,7 +161,19 @@ const PendingPayment = ({ charge, onCheck, onChangeMethod, onSimulate }) => {
         {/* Hitung mundur batas pembayaran (menit:detik) */}
         <CountdownDisplay left={secondsLeft} />
 
-        {/* Nominal */}
+        {/* Nominal (rincian fee channel bila dibebankan ke customer) */}
+        {charge.fee > 0 && (
+          <>
+            <div className="flex items-center justify-between py-1.5 border-t" style={{ borderColor: '#f1f5f9' }}>
+              <span className="text-xs text-gray-500">Subtotal Pesanan</span>
+              <span className="text-xs text-gray-600 tabular-nums">{formatRupiah(charge.subtotal ?? charge.nominal - charge.fee)}</span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <span className="text-xs text-gray-500">Biaya Layanan Pembayaran</span>
+              <span className="text-xs text-gray-600 tabular-nums">{formatRupiah(charge.fee)}</span>
+            </div>
+          </>
+        )}
         <div className="flex items-center justify-between py-2 border-t" style={{ borderColor: '#f1f5f9' }}>
           <span className="text-xs text-gray-500">Nominal Transfer</span>
           <span className="text-sm font-bold" style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}>
@@ -195,17 +207,21 @@ const PendingPayment = ({ charge, onCheck, onChangeMethod, onSimulate }) => {
         >
           Ganti Metode
         </button>
-        {/* Mode demo: pembayaran otomatis dikonfirmasi ±20 detik. Tombol ini hanya
-            untuk melewati waktu tunggu. Hapus saat gateway asli aktif. */}
-        <p className="text-center text-[11px] text-gray-400 pt-1">
-          Mode demo — otomatis terbayar dalam ±20 detik
-        </p>
-        <button
-          onClick={onSimulate}
-          className="w-full text-[11px] text-gray-400 hover:text-gray-600 underline"
-        >
-          Bayar sekarang (lewati waktu tunggu)
-        </button>
+        {/* Mode demo (gateway=dummy): pembayaran otomatis dikonfirmasi ±20 detik.
+            Saat gateway asli (Tripay) aktif, tombol & teks ini tidak dirender. */}
+        {charge.gateway === 'dummy' && (
+          <>
+            <p className="text-center text-[11px] text-gray-400 pt-1">
+              Mode demo — otomatis terbayar dalam ±20 detik
+            </p>
+            <button
+              onClick={onSimulate}
+              className="w-full text-[11px] text-gray-400 hover:text-gray-600 underline"
+            >
+              Bayar sekarang (lewati waktu tunggu)
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

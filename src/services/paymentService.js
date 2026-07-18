@@ -1,12 +1,19 @@
 import api from './api';
 
-// Transaksi pembayaran (dummy gateway sekarang, siap di-swap ke Midtrans/Flip).
+// Transaksi pembayaran (PAYMENT_GATEWAY di BE: "dummy" = simulasi, "tripay" = asli).
 // Bentuk respons = ChargeResponse: { payment_id, transaction_id, status, method,
-// type, nominal, qr_string?, va_number?, bank?, payment_url?, expires_at?,
-// instructions[], order_id, order_code, no_meja, created_at }
+// type, gateway, nominal, fee, subtotal, qr_string?, va_number?, bank?,
+// payment_url?, expires_at?, instructions[], order_id, order_code, no_meja, created_at }
 
 export const chargePayment = async ({ id_pesanan, metode_pembayaran_id }) => {
   const res = await api.post('/payments/charge', { id_pesanan, metode_pembayaran_id });
+  return res.data;
+};
+
+// Daftar channel gateway + struktur fee per channel (kosong saat mode dummy).
+// Item: { code, name, group, active, fee_flat, fee_percent, minimum_fee, maximum_fee }
+export const getPaymentChannels = async () => {
+  const res = await api.get('/payments/channels');
   return res.data;
 };
 
