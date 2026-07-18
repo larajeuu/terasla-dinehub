@@ -81,6 +81,10 @@ const Refund = () => {
   }
 
   const done = refund.status === 'disetujui';
+  const rejected = refund.status === 'ditolak';
+  // Tujuan sudah dikirim tapi transfer manual pengelola belum selesai
+  // (mode gateway asli: status tetap pending sampai admin menandai selesai).
+  const waiting = refund.status === 'pending' && !!refund.metode_refund && !!refund.nomor_tujuan;
 
   return wrap(
     <div className="space-y-4">
@@ -92,7 +96,39 @@ const Refund = () => {
         </p>
       </div>
 
-      {done ? (
+      {rejected && (
+        <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: '#fecaca', background: '#fef2f2' }}>
+          <p className="text-sm font-bold mb-1" style={{ color: '#b91c1c', fontFamily: "'Poppins', sans-serif" }}>
+            Refund ditolak
+          </p>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Pengajuan refund ini ditolak pengelola. Silakan hubungi pengelola Teras LA untuk informasi lebih lanjut.
+          </p>
+        </div>
+      )}
+
+      {waiting && (
+        <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: '#fde68a', background: '#fffbeb' }}>
+          <p className="text-sm font-bold mb-1" style={{ color: '#b45309', fontFamily: "'Poppins', sans-serif" }}>
+            Refund sedang diproses
+          </p>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Tujuan refund kamu sudah kami terima: <b>{refund.metode_refund}</b>
+            {refund.nomor_tujuan ? ` (${refund.nomor_tujuan})` : ''}. Dana sebesar{' '}
+            <b>{formatRupiah(refund.nominal)}</b> akan dikirim oleh pengelola. Kamu akan
+            dihubungi bila ada kendala.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full mt-4 py-3 rounded-2xl text-white text-sm font-bold"
+            style={{ background: BRAND, fontFamily: "'Poppins', sans-serif" }}
+          >
+            Kembali ke Beranda
+          </button>
+        </div>
+      )}
+
+      {done && (
         <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: '#bbf7d0', background: '#f0fdf4' }}>
           <p className="text-sm font-bold mb-1" style={{ color: '#15803d', fontFamily: "'Poppins', sans-serif" }}>
             ✓ Refund sudah diproses
@@ -109,7 +145,10 @@ const Refund = () => {
             Kembali ke Beranda
           </button>
         </div>
-      ) : (
+      )}
+
+      {/* Form pilih tujuan — hanya saat refund masih pending & tujuan belum dikirim */}
+      {!done && !waiting && !rejected && (
         <>
           <div className="bg-white rounded-2xl p-5 border" style={{ borderColor: '#e5e7eb' }}>
             <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Pilih E-Wallet</p>
@@ -160,7 +199,8 @@ const Refund = () => {
             {submitting ? 'Memproses...' : 'Proses Refund Sekarang'}
           </button>
           <p className="text-[11px] text-gray-400 text-center leading-relaxed px-4">
-            Dengan menekan tombol, refund langsung diselesaikan ke e-wallet yang kamu pilih.
+            Setelah tujuan dikirim, pengembalian dana diproses oleh pengelola ke
+            e-wallet yang kamu pilih.
           </p>
         </>
       )}
