@@ -24,3 +24,11 @@ export const deletePaymentMethod = async (id) => {
   const res = await api.delete(`/payment-methods/${id}`);
   return res.data;
 };
+
+// Sinkronkan katalog metode dari channel Tripay (admin). Channel baru masuk
+// nonaktif; nama & fee mengikuti Tripay; channel hilang → dinonaktifkan.
+// Return: { added, updated, deactivated, methods: [...] }
+export const syncTripayPaymentMethods = async () => {
+  const res = await api.post('/payment-methods/sync-tripay');
+  return res.data;
+};

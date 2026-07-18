@@ -5,6 +5,7 @@ import FormModal from '../../components/FormModal';
 import { PlusIcon, EditIcon, TrashIcon } from '../../components/icons';
 import {
   getPaymentMethods, createPaymentMethod, updatePaymentMethod, deletePaymentMethod,
+  syncTripayPaymentMethods,
 } from '../../../services/paymentMethodService';
 import {
   getDiningTables, createDiningTable, updateDiningTable, deleteDiningTable, buildScanUrl,
@@ -142,6 +143,26 @@ const System = () => {
   const togglePayment = async (p) => {
     try { upsert(setPayments, await updatePaymentMethod(p.id, { is_active: !p.is_active })); }
     catch (err) { apiError(err, 'Gagal mengubah status metode'); }
+  };
+  // Tarik katalog channel dari Tripay: baru → nonaktif (tinggal diaktifkan),
+  // nama & fee mengikuti Tripay, channel hilang → otomatis nonaktif.
+  const [syncing, setSyncing] = useState(false);
+  const syncTripay = async () => {
+    setSyncing(true);
+    try {
+      const r = await syncTripayPaymentMethods();
+      setPayments(r.methods);
+      alert(`Sinkron Tripay selesai: ${r.added} baru, ${r.updated} diperbarui, ${r.deactivated} dinonaktifkan.`);
+    } catch (err) { apiError(err, 'Gagal sinkron dari Tripay'); }
+    finally { setSyncing(false); }
+  };
+  // Teks biaya channel (ditanggung customer) untuk baris metode.
+  const feeLabel = (p) => {
+    if (!p.tripay_code) return 'Metode lokal (tanpa gateway)';
+    const parts = [];
+    if (p.fee_flat) parts.push(formatRupiah(p.fee_flat));
+    if (p.fee_percent) parts.push(`${p.fee_percent}%`);
+    return `Tripay ${p.tripay_code}${parts.length ? ` · biaya ${parts.join(' + ')}` : ' · tanpa biaya'}`;
   };
   const removePayment = async (p) => {
     if (!confirm(`Hapus metode "${p.nama_metode}"?`)) return;
@@ -287,11 +308,21 @@ const System = () => {
           <div className="p-5 flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold" style={{ color: '#1D3A27', fontFamily: "'Poppins', sans-serif" }}>Metode Pembayaran</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Aktifkan/nonaktifkan metode pembayaran</p>
+              <p className="text-xs text-gray-500 mt-0.5">Sinkronkan dari Tripay, lalu tinggal aktifkan yang mau dipakai</p>
             </div>
-            <button onClick={addPayment} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: '#C8961A' }}>
-              <PlusIcon size={14} /> Tambah
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={syncTripay}
+                disabled={syncing}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+                style={{ background: '#1D3A27' }}
+              >
+                {syncing ? 'Menyinkron...' : 'Sinkron Tripay'}
+              </button>
+              <button onClick={addPayment} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: '#C8961A' }}>
+                <PlusIcon size={14} /> Tambah
+              </button>
+            </div>
           </div>
           {payments.map((p) => (
             <div key={p.id} className="flex items-center justify-between gap-4 px-5 py-3 border-t" style={{ borderColor: '#f1f5f9' }}>
@@ -301,7 +332,9 @@ const System = () => {
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-gray-800">{p.nama_metode}</div>
-                  <div className="text-[11px] text-gray-500">{p.is_active ? 'Aktif' : 'Nonaktif'}</div>
+                  <div className="text-[11px] text-gray-500">
+                    {p.is_active ? 'Aktif' : 'Nonaktif'} · {feeLabel(p)}
+                  </div>
                 </div>
               </div>
               <Toggle big checked={p.is_active} onChange={() => togglePayment(p)} />
