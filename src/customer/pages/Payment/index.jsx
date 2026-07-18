@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import usePaymentStore from '../../../store/paymentStore';
 import { getPaymentMethods } from '../../../services/paymentMethodService';
-import { chargePayment, getPaymentChannels } from '../../../services/paymentService';
+import { chargePayment } from '../../../services/paymentService';
 import { formatRupiah } from '../../../shared/utils/format';
 import PaymentHeader from './components/PaymentHeader';
 import PaymentSection from './components/PaymentSection';
@@ -20,12 +20,13 @@ const brandFromName = (nama = '') => {
   return undefined;
 };
 
-// Deskripsi biaya channel gateway (fee dibebankan ke customer). Channel dari
-// GET /payments/channels — kosong saat mode dummy → 'Tanpa biaya tambahan'.
-const feeDescription = (channel) => {
-  if (!channel) return 'Tanpa biaya tambahan';
-  const flat = channel.fee_flat || 0;
-  const pct = channel.fee_percent || 0;
+// Deskripsi biaya channel (fee dibebankan ke customer). Diambil dari kolom
+// fee_flat/fee_percent metode pembayaran — hasil "Sinkron Tripay" di admin —
+// sehingga tampil konsisten dengan dashboard admin.
+const feeDescription = (m) => {
+  if (!m?.tripay_code) return 'Tanpa biaya tambahan';
+  const flat = m.fee_flat || 0;
+  const pct = m.fee_percent || 0;
   if (!flat && !pct) return 'Tanpa biaya tambahan';
   const parts = [];
   if (flat) parts.push(formatRupiah(flat));
@@ -53,18 +54,13 @@ const Payment = () => {
     try {
       setLoading(true);
       setError(null);
-      // Channel gateway opsional (fee per channel); gagal fetch ≠ gagal halaman.
-      const [data, channels] = await Promise.all([
-        getPaymentMethods(),
-        getPaymentChannels().catch(() => []),
-      ]);
-      const channelByCode = Object.fromEntries((channels || []).map((c) => [c.code, c]));
+      const data = await getPaymentMethods();
       const opts = (data || [])
         .filter((m) => m.is_active)
         .map((m) => ({
           id: m.id,
           label: m.nama_metode,
-          description: feeDescription(m.tripay_code ? channelByCode[m.tripay_code] : null),
+          description: feeDescription(m),
           brand: brandFromName(m.nama_metode),
         }));
       setOptions(opts);
