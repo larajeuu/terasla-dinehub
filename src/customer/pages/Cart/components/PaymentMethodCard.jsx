@@ -53,7 +53,8 @@ const PaymentMethodCard = () => {
               className="text-[11px] text-gray-400 truncate"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              {selectedMethod.groupLabel}
+              {/* Tampilkan biaya channel (mis. "Biaya layanan 0.7%") bila ada */}
+              {selectedMethod.description || selectedMethod.groupLabel}
             </p>
           </>
         ) : (

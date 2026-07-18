@@ -152,7 +152,8 @@ const System = () => {
     try {
       const r = await syncTripayPaymentMethods();
       setPayments(r.methods);
-      alert(`Sinkron Tripay selesai: ${r.added} baru, ${r.updated} diperbarui, ${r.deactivated} dinonaktifkan.`);
+      alert(`Sinkron Tripay selesai: ${r.added} baru, ${r.updated} diperbarui, ${r.removed} dihapus`
+        + (r.deactivated ? `, ${r.deactivated} dinonaktifkan (terpakai riwayat transaksi).` : '.'));
     } catch (err) { apiError(err, 'Gagal sinkron dari Tripay'); }
     finally { setSyncing(false); }
   };
